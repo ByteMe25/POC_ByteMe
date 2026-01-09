@@ -1,6 +1,6 @@
 <h1 align="center">POC_ByteMe</h1>
 
-<p align="center">Questa repository ha lo scopo di tracciare i file e la documentazione relativi allo sviluppo del **Proof of Concept (PoC)** del progetto **Second Brain**, sviluppato dal gruppo 13 ByteMe del corso di **Ingegneria del Software** 2025/2026, dell'Università di Padova.</em></p>
+<p align="center">Questa repository ha lo scopo di tracciare i file e la documentazione relativi allo sviluppo del Proof of Concept (PoC) del progetto Second Brain, sviluppato dal gruppo 13 ByteMe del corso di Ingegneria del Software 2025/2026, dell'Università di Padova.</p>
 <p align="center"> 
 Questo spazio è pensato per raccogliere e condividere tra i membri del gruppo i materiali relativi alla validazione delle tecnologie e degli approcci implementativi che ci permetteranno poi di sviluppare il progetto Second Brain.</p>
 
