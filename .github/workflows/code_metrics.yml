@@ -1,0 +1,64 @@
+name: 📊 Code Metrics (LOC & McCabe)
+
+on:
+  push:
+    paths:
+      # Documentazione (LaTeX)
+      - '**/*.tex'
+      - '**/*.sty'
+      # Linguaggi Backend & Scripting
+      - '**/*.php'
+      - '**/*.py'
+      # Linguaggi Frontend
+      - '**/*.js'
+      - '**/*.ts'
+      - '**/*.jsx'
+      - '**/*.html'
+      - '**/*.css'
+      # Database & Config
+      - '**/*.sql'
+      - '**/Dockerfile'
+      - '**/docker-compose.yml'
+  workflow_dispatch:
+
+jobs:
+  calculate-metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v3
+
+      - name: 🛠️ Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cloc
+          pip install lizard
+
+      - name: 📏 Calcolo Lines of Code (LOC)
+        run: |
+          echo "======================================================="
+          echo "📊 REPORT LINEE DI CODICE (LOC)"
+          echo "======================================================="
+          # CORREZIONE: Ho rimosso 'docs/images' da --exclude-dir.
+          # Le immagini vengono ignorate grazie a --exclude-ext (png, jpg, svg).
+          cloc . \
+            --exclude-dir=node_modules,vendor,dist,build,.git,.github \
+            --exclude-ext=json,xml,yaml,yml,lock,svg,png,jpg,pdf \
+            --not-match-f='min.js|min.css'
+          echo "======================================================="
+
+      - name: 🌀 Calcolo Complessità Ciclomatica (McCabe)
+        run: |
+          echo "======================================================="
+          echo "🧠 REPORT COMPLESSITÀ CICLOMATICA (McCabe)"
+          echo "======================================================="
+          echo "Nota: Analizza JS, PHP, Python. LaTeX/HTML/CSS sono esclusi."
+          
+          # Lizard supporta l'esclusione percorsi (-x), quindi qui i path funzionano
+          lizard . \
+            -x "./node_modules/*" \
+            -x "./vendor/*" \
+            -x "./dist/*" \
+            -x "./*.min.js" \
+            --verbose
+          echo "======================================================="
