@@ -1,0 +1,53 @@
+services:
+  backend:
+    image: poc-backend
+    pull_policy: never
+    # evita di pullare imamagini da internet omonime per sbaglio
+
+    container_name: poc-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+      # cambiamenti visibili senza ricostruzione del docker 
+
+    ports:
+      - 8000:8000
+
+
+
+  frontend:  
+    image: poc-frontend
+    pull_policy: never
+    # evita di pullare immagini da internet omonime per sbaglio
+
+    container_name: poc-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend/static:/usr/share/nginx/html
+      # cambiamenti visibili senza ricostruzione del docker
+    ports:
+      - 80:80
+
+
+
+  db:
+    image: postgres:latest
+    container_name: poc-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      # password esposta!!!
+
+      POSTGRES_DB: poc_db
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  
+volumes:
+  postgres_data:
+  #default settings per il volume
