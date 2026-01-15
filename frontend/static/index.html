@@ -4,5 +4,14 @@
 </head>
 <body>
     <h1>Ciao Mondo</h1>
+    <input type="button" value="Testa connessione db!">
+    <script>
+        document.querySelector("input").onclick = async () => {
+            const response = await fetch("http://localhost:8000/api/test-db-connection");
+            const data = await response.json();
+            alert(data.message);
+        };
+    </script>
+
 </body>
 </html>
