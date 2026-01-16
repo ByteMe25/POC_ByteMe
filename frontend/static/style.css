@@ -1,0 +1,483 @@
+/* =========================================
+   VARIABILI (THEME SYSTEM)
+   ========================================= */
+:root {
+    /* PALETTE COLORI */
+    --hue-primary: 215; /* Tonalità Blu */
+    --col-primary: hsl(var(--hue-primary), 90%, 35%); /* Blu Scuro/Deciso */
+    --col-accent:  hsl(var(--hue-primary), 80%, 55%); /* Azzurro Vivo */
+    --col-hover:   hsl(var(--hue-primary), 80%, 92%); /* Sfondo Hover leggero */
+
+    /* STRUTTURA & SFONDI */
+    --bg-sidebar:  #1e293b; /* Blu Molto Scuro (Barra icone) */
+    --bg-panel:    #f8fafc; /* Grigio quasi bianco (Menu laterale) */
+    --bg-header:   hsl(var(--hue-primary), 60%, 96%); /* Azzurro Chiaro (Top bar mini) */
+    --bg-toolbar:  hsl(var(--hue-primary), 30%, 92%); /* Toolbar editor (un po' più scura header) */
+    --bg-editor:   #ffffff; /* Bianco puro */
+    --bg-body:     #f1f5f9;
+
+    /* STATI & NOTIFICHE */
+    --col-success: #2ecc71; /* Verde Successo */
+    --col-error:   #e74c3c; /* Rosso Errore */
+
+    /* TESTO & BORDI */
+    --text-main:   #334155;
+    --text-muted:  #94a3b8;
+    --border-light: rgba(0,0,0,0.08);
+
+    /* SPACING & DIMENSIONI */
+    --radius-std:  6px;
+    --width-sidebar: 3.5rem; /* Larghezza barra icone fissa */
+    --width-panel:   16rem; /* Larghezza menu aperto (~250px) */
+    --header-height: 3rem; /* Altezza barra titolo */
+}
+
+/* =========================================
+   RESET E STILI BASE
+   ========================================= */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    line-height: 1.5;
+    overflow: hidden;
+}
+
+*, *:before, *:after { box-sizing: border-box; }
+
+/* =========================================
+   LAYOUT PRINCIPALE (GRID / FLEX)
+   ========================================= */
+.app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* ACTIVITY BAR (Icone sinistra fisse) */
+.activity-bar {
+    width: var(--width-sidebar);
+    background-color: var(--bg-sidebar);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1rem 0;
+    flex-shrink: 0;
+    position: relative; 
+    z-index: 10005;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.icon-btn {
+    height: 3.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #94a3b8; /*icone spente*/
+    cursor: pointer;
+    font-size: 1.25rem;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+
+.icon-btn:hover {
+    color: white;
+    background-color: rgba(255,255,255,0.1);
+}
+
+.icon-btn.active-tab {
+    color: white;
+    border-left-color: var(--col-accent);
+}
+
+/* SIDE PANEL (Menu a scomparsa) */
+.side-panel {
+    width: var(--width-panel);
+    background-color: var(--bg-panel);
+    border-right: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    z-index: 10004;
+}
+
+.side-panel.closed {
+    width: 0;
+    border-right: none;
+}
+
+.panel-header {
+    height: var(--header-height);
+    padding: 0 1rem;
+    background-color: white;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    color: var(--col-primary);
+}
+
+.close-panel-btn { cursor: pointer; padding: 5px; }
+.close-panel-btn:hover { color: var(--col-error); }
+
+.panel-content {
+    padding: 1rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.panel-hint {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    font-style: italic;
+}
+
+/* MAIN CONTENT (Editor + Top Bar Mini) */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background-color: var(--bg-editor);
+}
+
+/* Top Bar Minimalista */
+.top-bar-mini {
+    height: 3.5em; 
+    height: var(--header-height);
+    background-color: var(--bg-header);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5em;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.doc-info {
+    display: flex;
+    align-items: baseline;;
+    gap: 0.8rem;
+    font-size: 0.9rem;
+}
+
+.app-name {
+    font-weight: 800;
+    color: var(--col-primary);
+    font-size: 1.8em;
+    letter-spacing: -0.5px;
+}
+
+.doc-title-input-mini {
+    border: 1px solid transparent;
+    background: transparent;
+    font-weight: 600;
+    color: var(--text-main);
+    font-size: 1.2rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    width: 300px;
+    transition: all 0.2s;
+}
+
+.doc-title-input-mini:hover, .doc-title-input-mini:focus {
+    background: white;
+    border-color: var(--col-accent);
+    outline: none;
+}
+
+.file-ext {
+    color: var(--text-muted);
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.status-indicator { 
+    font-size: 1rem; 
+    transition: color 0.3s;
+    cursor: help;
+}
+
+/* =========================================
+   ELEMENTI UI (Bottoni, Accordion)
+   ========================================= */
+/* Bottoni Pannello Laterale */
+.panel-btn, .panel-sub-btn {
+    width: 100%;
+    text-align: left;
+    border: 1px solid var(--border-light);
+    background: white;
+    padding: 0.6rem 0.8rem;
+    margin-bottom: 0.5rem;
+    border-radius: var(--radius-std);
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.panel-btn:hover {
+    border-color: var(--col-accent);
+    color: var(--col-primary);
+    background-color: var(--col-hover);
+    transform: translateX(2px);
+}
+
+/* Accordion (Menu a tendina) */
+.accordion-item { margin-bottom: 0.5rem; }
+
+.accordion-header {
+    @extend .panel-btn; /*eredita stile bottone*/
+    background-color: #f1f5f9;
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem;
+    width: 100%;
+    cursor: pointer;
+    border-radius: var(--radius-std);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.accordion-body {
+    display: none;
+    padding-left: 0.8rem;
+    border-left: 2px solid var(--border-light);
+    margin: 0.5rem 0 1rem 0.5rem;
+}
+.accordion-body.open { display: block; }
+.accordion-header .arrow {
+    transition: transform 0.3s;
+    font-size: 0.8em;
+}
+.accordion-body.open ~ .accordion-header .arrow { transform: rotate(180deg); }
+
+.panel-sub-btn {
+    border: none;
+    background: transparent;
+    padding: 0.4rem 0.6rem;
+    margin-bottom: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+.panel-sub-btn:hover {
+    color: var(--col-primary);
+    background-color: var(--col-hover);
+}
+
+.panel-divider {
+    height: 1px; 
+    background: var(--border-light);
+    margin: 1.5rem 0; 
+}
+
+/* Colori 6 cappelli */
+.dot {
+    display: inline-block;
+    width: 0.7em; 
+    height: 0.7em; 
+    border-radius: 50%; 
+    border: 1px solid rgba(0,0,0,0.1); 
+}
+
+.dot.white { background: #fff; }
+.dot.red { background: #ef4444; } 
+.dot.black { background: #1e293b; }
+.dot.yellow { background: #eab308; } 
+.dot.green { background: #22c55e; } 
+.dot.blue { background: #3b82f6; }
+
+/* =========================================
+   OVERRIDE EASYMDE (Editor Fix Finale)
+   ========================================= */
+.editor-toolbar {
+    background-color: var(--bg-toolbar);
+    border-color: var(--border-light);
+    border-radius: var(--radius-std) var(--radius-std) 0 0;
+    padding: 0.2em;
+    opacity: 1;
+}
+
+/* Bottoni della Toolbar */
+.editor-toolbar button {
+    border: 1px solid transparent;
+    background: transparent;
+    opacity: 0.8;
+}
+.editor-toolbar button:hover, .editor-toolbar button.active {
+    background-color: white;
+    border-color: var(--col-accent);
+    color: var(--col-accent);
+    opacity: 1;
+}
+/* Nasconde i separatori inutili */
+.editor-toolbar i.separator { display: none; }
+
+
+/* AREA DI TESTO (Codemirror) */
+.CodeMirror {
+    background-color: var(--bg-editor);
+    border-color: var(--border-light);
+    border-radius: 0 0 var(--radius-std) var(--radius-std);
+    color: var(--text-main);
+    height: 60vh; 
+    min-height: 300px; 
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.95em;
+    box-shadow: var(--shadow-soft);
+}
+
+.CodeMirror-cursor {
+    border-left: 2px solid var(--col-accent);
+}
+
+.CodeMirror-focused {
+    border-color: var(--col-accent);
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+
+/* =========================================
+   INTEGRAZIONE AI (WIDGET LINE)
+   ========================================= */
+/* WIDGET AI: contenitore principale che appare tra le righe */
+.ai-widget-container {
+    margin: 1.5em 0; 
+    padding: 0;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-std);
+    background-color: #ffffff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    font-size: 1rem; 
+}
+
+/* Header Widget (titolo) */
+.ai-widget-header {
+    padding: 0.6em 1em;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--text-muted);
+    background-color: #f8fafc; /* Grigio chiarissimo */
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: monospace;
+}
+
+/* Corpo del testo generato */
+.ai-widget-content {
+    padding: 1.5em;
+    white-space: pre-wrap;
+    line-height: 1.6;
+    color: var(--col-primary); 
+    background-color: #ffffff; 
+}
+
+/* Stati */
+.ai-loading { 
+    color: var(--text-muted); 
+    font-style: italic; 
+}
+
+/* Footer Azioni */
+.ai-widget-actions {
+    padding: 0.75em 1em;
+    background-color: #f8fafc;
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5em;
+}
+
+/* Pulsanti interni al widget (simili a quelli della sidebar) */
+.action-btn {
+    background: white;
+    border: 1px solid var(--border-light);
+    padding: 0.4em 0.8em;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--text-main);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    transition: all 0.2s;
+}
+.action-btn:hover { 
+    border-color: var(--col-accent); 
+    color: var(--col-primary); 
+}
+
+/* Bottone Elimina (Rosso) */
+.action-btn.btn-delete { 
+    color: var(--col-error); 
+    border-color: transparent; 
+}
+.action-btn.btn-delete:hover { 
+    background-color: var(--col-error); 
+    color: white; 
+    border-color: var(--col-error); 
+}
+
+/* COLORI SFONDO PER WIDGET 6 CAPPELLI*/
+.ai-mode-green .ai-widget-content { 
+    background-color: #a1f5ba; 
+}
+
+.ai-mode-white .ai-widget-content {
+    background-color: #e2e2e2;
+}
+
+.ai-mode-red .ai-widget-content {
+    background-color: #f36e6e80;
+}
+
+.ai-mode-black .ai-widget-content {
+    background-color: #abacad;
+}
+
+.ai-mode-yellow .ai-widget-content {
+    background-color: #f5eb83;
+}
+
+.ai-mode-blue .ai-widget-content {
+    background-color: #9bbde9;
+}
+
+/* =========================================
+   TOAST NOTIFICATIONS (Toastify)
+   ========================================= */
+/* Base comune per i toast */
+.toastify.toast-base {
+    border-radius: var(--radius-std);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    font-family: inherit;
+    font-weight: 600;
+    color: white;
+    padding: 12px 20px;
+}
+.toastify.toast-success { background: var(--col-success); }
+.toastify.toast-error { background: var(--col-error); }

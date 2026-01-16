@@ -1,17 +1,124 @@
 <!DOCTYPE html>
+<html lang="it">
 <head>
-    <title>POC ByteMe</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ByteMe Second Brain - POC</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Ciao Mondo</h1>
-    <input type="button" value="Testa connessione db!">
-    <script>
-        document.querySelector("input").onclick = async () => {
-            const response = await fetch("http://localhost:8000/api/test-db-connection");
-            const data = await response.json();
-            alert(data.message);
-        };
-    </script>
 
+    <input type="file" id="file-input" style="display: none;" accept=".md,.txt,.markdown"> <!--per caricare file-->
+
+    <div class="app-container">
+        <!--BARRA LATERALE PER CARICARE/SCARICAR FILE + FUNZIONI AI-->
+        <aside class="activity-bar">
+            <div class="activity-top">
+
+                <div class="icon-btn" onclick="triggerUpload()" title="Carica File">
+                    <i class="fa fa-folder-open"></i>
+                </div>
+                <div class="icon-btn" onclick="downloadFile()" title="Salva File">
+                    <i class="fa fa-save"></i>
+                </div>
+
+                <div class="icon-btn active-tab" onclick="toggleSidePanel('ai-panel')" title="Strumenti AI">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <div class="icon-btn" onclick="callAI('distant_writing')" title="Distant Writing">
+                    <i class="fa fa-pen-fancy"></i>
+                </div>
+            </div>
+            
+            <!--test connessione al db (da togliere)-->
+            <div class="activity-bottom">
+                <div class="icon-btn" onclick="testConnection()" title="Test Connessione">
+                    <i class="fa fa-plug"></i>
+                </div>
+            </div>
+        </aside>
+
+        <!--stile per sidebar che si apre quando si preme in uno dei pulsanti-->
+        <aside id="side-panel" class="side-panel">
+            <div class="panel-header">
+                <span>✨ AI ASSISTANT</span>
+                <i class="fa fa-times close-panel-btn" onclick="closeSidePanel()"></i>
+            </div>
+            
+            <div class="panel-content">
+                <p class="panel-hint">Scegli una funzionalità AI:</p>
+                
+                <button class="panel-btn" onclick="callAI('summary')">
+                    <i class="fa fa-list-alt"></i>Riassumi
+                </button>
+                <button class="panel-btn" onclick="callAI('fix_grammar')">
+                    <i class="fa fa-check-double"></i>Correggi
+                </button>
+                <button class="panel-btn" onclick="callAI('rewrite')">
+                    <i class="fa fa-pen-nib"></i>Riscrivi
+                </button>
+                <button class="panel-btn" onclick="callAI('chart')">
+                    <i class="fa fa-chart-pie"></i>Genera Grafico
+                </button>
+
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion('acc-hats')">
+                        <span><i class="fa fa-hat-wizard"></i>Analizza</span>
+                        <i class="fa fa-chevron-down arrow"></i>
+                    </div>
+                    <div id="acc-hats" class="accordion-body">
+                        <button class="panel-sub-btn" onclick="callAI('white_hat')"><span class="dot white"></span> Bianco (Dati)</button>
+                        <button class="panel-sub-btn" onclick="callAI('red_hat')"><span class="dot red"></span> Rosso (Emozioni)</button>
+                        <button class="panel-sub-btn" onclick="callAI('black_hat')"><span class="dot black"></span> Nero (Rischi)</button>
+                        <button class="panel-sub-btn" onclick="callAI('yellow_hat')"><span class="dot yellow"></span> Giallo (Ottimismo)</button>
+                        <button class="panel-sub-btn" onclick="callAI('green_hat')"><span class="dot green"></span> Verde (Creatività)</button>
+                        <button class="panel-sub-btn" onclick="callAI('blue_hat')"><span class="dot blue"></span> Blu (Processo)</button>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion('acc-trans')">
+                        <span><i class="fa fa-language"></i> Traduci</span>
+                        <i class="fa fa-chevron-down arrow"></i>
+                    </div>
+                    <div id="acc-trans" class="accordion-body">
+                        <button class="panel-sub-btn" onclick="callAI('translate_it')">🇮🇹 Italiano</button>
+                        <button class="panel-sub-btn" onclick="callAI('translate_en')">🇬🇧 Inglese</button>
+                        <button class="panel-sub-btn" onclick="callAI('translate_es')">🇪🇸 Spagnolo</button>
+                        <button class="panel-sub-btn" onclick="callAI('translate_fr')">🇫🇷 Francese</button>
+                        <button class="panel-sub-btn" onclick="callAI('translate_de')">🇩🇪 Tedesco</button>
+                        <button class="panel-sub-btn" onclick="callAI('translate_zh')">🇨🇳 Cinese Mandarino</button>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-bar-mini">
+                <div class="doc-info">
+                    <span class="app-name">Second Brain</span>
+                    <span class="divider">/</span>
+                    <input type="text" id="doc-title" class="doc-title-input-mini" value="Untitled" placeholder="Nome file...">
+                    <span class="file-ext">.md</span>
+                </div>
+                <div class="status-indicator" id="db-status" title="Status DB">●</div>
+            </div>
+
+            <!--text area easyMDE-->
+            <div class="editor-wrapper">
+                <textarea id="my-editor"></textarea>
+            </div>
+        </main>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <script src="script.js"></script> 
 </body>
 </html>
