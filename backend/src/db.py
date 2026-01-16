@@ -30,7 +30,7 @@ def get_db_connection():
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         conn.close()
-        return {"message": "Connection successful!"}
+        return {"status": "success", "message": "Daje che va il DB!"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Connection failed: {str(e)}")
     

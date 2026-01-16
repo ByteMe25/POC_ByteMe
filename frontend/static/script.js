@@ -308,12 +308,11 @@ async function testConnection() {
     try {
         const response = await fetch("http://localhost:8000/api/test-db-connection");
         const data = await response.json();
-        
         if(data.status === "success") {
-            notify(data.message);
+            notify(data.message);   
             statusDot.style.color = "#2ecc71"; // Verde
         } else {
-            notify("Errore DB: " + data.detail, "error");
+            notify("Errore DB: non te lo dico gneeee");
             statusDot.style.color = "#e74c3c"; // Rosso
         }
     } catch (e) {
