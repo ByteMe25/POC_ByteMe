@@ -14,6 +14,9 @@ services:
     command: uvicorn db:app --host 0.0.0.0 --port 8000
     ports:
       - 8000:8000
+    environment:  # aggiunte key Zucchetti
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
 
 
 
@@ -30,7 +33,7 @@ services:
       - ./frontend/static:/usr/share/nginx/html
       # cambiamenti visibili senza ricostruzione del docker
     ports:
-      - 80:80
+      - 8080:80
 
 
 
@@ -44,7 +47,7 @@ services:
 
       POSTGRES_DB: poc_db
     ports:
-      - 5432:5432
+      - 5433:5432
     volumes:
       - postgres_data:/var/lib/postgresql
   
