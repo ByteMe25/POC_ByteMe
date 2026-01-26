@@ -26,8 +26,8 @@ DB_CONFIG = {
 }
 
 # === CONFIGURAZIONE ZUCCHETTI ===
-base_url = os.environ.get("OPENAI_BASE_URL", "http://padova.zucchettitest.it:14000/v1")
-api_key = os.environ.get("OPENAI_API_KEY", "sk-SOYIsDyAJTzjilKzj0FdFw")
+base_url = os.environ.get("OPENAI_BASE_URL", "")
+api_key = os.environ.get("OPENAI_API_KEY", "")
 
 # MODELLO ZUCCHETTI: si può modificare
 ZUCCHETTI_MODEL = "llama3.2:3b"
