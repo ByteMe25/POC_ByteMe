@@ -481,3 +481,32 @@ html, body {
 }
 .toastify.toast-success { background: var(--col-success); }
 .toastify.toast-error { background: var(--col-error); }
+
+/* =====FULLSCREEN EASYMDE (non worka)===== */
+body.CodeMirror-fullscreen {
+    overflow: visible !important;
+}
+
+body.CodeMirror-fullscreen .EasyMDEContainer {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-editor);
+    z-index: 9999;
+}
+
+body.CodeMirror-fullscreen .editor-toolbar {
+    flex-shrink: 0;
+    height: auto !important;
+    flex-wrap: wrap;
+    overflow: visible;
+}
+
+body.CodeMirror-fullscreen .CodeMirror,
+body.CodeMirror-fullscreen .editor-preview,
+body.CodeMirror-fullscreen .editor-preview-side {
+    flex: 1 1 auto;
+    height: auto !important;
+    min-height: 0 !important;
+}

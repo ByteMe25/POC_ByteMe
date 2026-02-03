@@ -25,6 +25,7 @@ const easyMDE = new EasyMDE({
     
     // LA TUA TOOLBAR (Non modificata)
     toolbar: [
+        "undo", "redo", "|",
         "bold", "italic",
         {
             name: "underline",
@@ -38,8 +39,20 @@ const easyMDE = new EasyMDE({
             title: "Sottolineato",
         }, "|",
         "heading-smaller", "heading-bigger", "|",
-        "code", "table", "link", "image", "|",
-        "undo", "redo", "|",
+        "table",
+        {
+        name: "horizontal-rule",
+        action: function(editor) {
+        const cm = editor.codemirror;
+        const cursor = cm.getCursor();
+        
+        cm.replaceRange("\n\n---\n\n", cursor);
+        cm.focus();
+        },
+        className: "fa fa-minus",
+        title: "Insert horizontal line"
+        },
+        "link","|",
         "unordered-list", "ordered-list", "|",
         {
             name: "copy",
@@ -78,13 +91,44 @@ const easyMDE = new EasyMDE({
             title: "Cut (Ctrl+Z)"
         },
         "|",
-        "side-by-side", 
+        {
+        name: "editor-only",
+        action: showEditorOnly,
+        className: "fa fa-pen",
+        title: "Only editor view"
+        },
+        {
+        name: "preview-only",
+        action: showPreviewOnly,
+        className: "fa fa-eye",
+        title: "Only document view"
+        },
+        {
+        name: "side-by-side",
+        action: showSideBySide,
+        className: "fa fa-columns",
+        title: "Editor and document view"
+        },
         "fullscreen", 
         "guide", 
     ] 
 });
+//questa va messa per far comparire di default la side by side view
+showSideBySide();
+function showEditorOnly() {
+    if (easyMDE.isPreviewActive()) easyMDE.togglePreview();
+    if (easyMDE.isSideBySideActive()) easyMDE.toggleSideBySide();
+}
 
-easyMDE.toggleSideBySide(); // Anteprima attiva subito
+function showPreviewOnly() {
+    if (easyMDE.isSideBySideActive()) easyMDE.toggleSideBySide();
+    if (!easyMDE.isPreviewActive()) easyMDE.togglePreview();
+}
+
+function showSideBySide() {
+    if (easyMDE.isPreviewActive()) easyMDE.togglePreview();
+    if (!easyMDE.isSideBySideActive()) easyMDE.toggleSideBySide();
+}
 
 
 /* =========================================
