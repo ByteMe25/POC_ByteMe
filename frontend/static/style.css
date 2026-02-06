@@ -208,7 +208,82 @@ html, body {
     transition: color 0.3s;
     cursor: help;
 }
+/* LOGIN */
+#title-login{
+    margin-top: 0px;
+}
+.login-page {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
+
+.login-box {
+    background: #fff;
+    padding: 40px;
+    width: 320px;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.login-input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.login-input-group i {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    color: #999;
+}
+
+.login-input-group input {
+    width: 100%;
+    padding: 10px 10px 10px 35px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 10px;
+    background: #007bff;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#rimando-registrazione {
+    display: inline-block;
+    margin-top: 10px;
+    color: #888;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+#rimando-registrazione:hover {
+    color: #555;
+    text-decoration: underline;
+}
+
+.torna-editor {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 6px 12px;
+    background-color: #ccc; /* grigio chiaro */
+    color: #333;
+    font-size: 13px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background 0.2s;
+}
 /* =========================================
    ELEMENTI UI (Bottoni, Accordion)
    ========================================= */
@@ -481,32 +556,3 @@ html, body {
 }
 .toastify.toast-success { background: var(--col-success); }
 .toastify.toast-error { background: var(--col-error); }
-
-/* =====FULLSCREEN EASYMDE (non worka)===== */
-body.CodeMirror-fullscreen {
-    overflow: visible !important;
-}
-
-body.CodeMirror-fullscreen .EasyMDEContainer {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    background: var(--bg-editor);
-    z-index: 9999;
-}
-
-body.CodeMirror-fullscreen .editor-toolbar {
-    flex-shrink: 0;
-    height: auto !important;
-    flex-wrap: wrap;
-    overflow: visible;
-}
-
-body.CodeMirror-fullscreen .CodeMirror,
-body.CodeMirror-fullscreen .editor-preview,
-body.CodeMirror-fullscreen .editor-preview-side {
-    flex: 1 1 auto;
-    height: auto !important;
-    min-height: 0 !important;
-}

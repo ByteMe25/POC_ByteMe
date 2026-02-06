@@ -108,11 +108,9 @@ const easyMDE = new EasyMDE({
         action: showSideBySide,
         className: "fa fa-columns",
         title: "Editor and document view"
-        },
-        "fullscreen", 
-        "guide", 
-    ] 
+        },] 
 });
+
 //questa va messa per far comparire di default la side by side view
 showSideBySide();
 function showEditorOnly() {
