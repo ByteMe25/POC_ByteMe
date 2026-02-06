@@ -31,6 +31,10 @@
                 <div class="icon-btn" onclick="callAI('distant_writing')" title="Distant Writing">
                     <i class="fa fa-pen-fancy"></i>
                 </div>
+                <!--sezione storico delle genrazioni AI-->
+                <div class="icon-btn" onclick="toggleHistoryView()" title="Storia Generazioni">
+                    <i class="fa fa-history"></i>
+                </div>
             </div>
             
             <!--test connessione al db (da togliere)-->
@@ -98,21 +102,47 @@
         </aside>
 
         <main class="main-content">
-            <div class="top-bar-mini">
-                <div class="doc-info">
-                    <span class="app-name">Second Brain</span>
-                    <span class="divider">/</span>
-                    <input type="text" id="doc-title" class="doc-title-input-mini" value="Untitled" placeholder="Nome file...">
-                    <span class="file-ext">.md</span>
+            <!--vista normale dell'editor-->
+            <div id="editor-view" class="editor-main-view">
+
+                <div class="top-bar-mini">
+                    <div class="doc-info">
+                        <span class="app-name">Second Brain</span>
+                        <span class="divider">/</span>
+                        <input type="text" id="doc-title" class="doc-title-input-mini" value="Untitled" placeholder="Nome file...">
+                        <span class="file-ext">.md</span>
+                    </div>
+                    <a href="Login.html">Accedi</a>
+                    <a href="Register.html">Registrati</a>    
                 </div>
-                <a href="Login.html">ACCEDI</a>
-                <a href="Register.html">REGISTRATI</a>    
+                <!--text area easyMDE-->
+                <div class="editor-wrapper">
+                    <textarea id="my-editor"></textarea>
+                </div>
+
             </div>
 
-            <!--text area easyMDE-->
-            <div class="editor-wrapper">
-                <textarea id="my-editor"></textarea>
+            <!--vista sezione storico generazioni-->
+            <div id="history-view" class="history-view">
+                <div class="history-header">
+                    <h2>
+                        <i class="fa fa-history"></i>
+                        Storia Generazioni AI
+                    </h2>
+                    <button class="btn-back" onclick="toggleHistoryView()">
+                        <i class="fa fa-arrow-left"></i>
+                        Torna all'Editor
+                    </button>
+                </div>
+                <div class="history-content" id="history-content">
+                    <div class="history-empty">
+                        <i class="fa fa-robot"></i>
+                        <p>Nessuna generazione salvata ancora.</p>
+                        <p>Le tue generazioni AI appariranno qui.</p>
+                    </div>
+                </div>
             </div>
+
         </main>
 
     </div>

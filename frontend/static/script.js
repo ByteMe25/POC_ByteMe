@@ -1,7 +1,6 @@
 /* =========================================
    CONFIGURAZIONE EDITOR E NOTIFICHE
    ========================================= */
-
 // Funzione Helper per Notifiche (toastify)
 const notify = (msg, type = "info") => {
     let cssClass = type === "error" ? "toast-error" : "toast-success"; 
@@ -41,16 +40,16 @@ const easyMDE = new EasyMDE({
         "heading-smaller", "heading-bigger", "|",
         "table",
         {
-        name: "horizontal-rule",
-        action: function(editor) {
-        const cm = editor.codemirror;
-        const cursor = cm.getCursor();
-        
-        cm.replaceRange("\n\n---\n\n", cursor);
-        cm.focus();
-        },
-        className: "fa fa-minus",
-        title: "Insert horizontal line"
+            name: "horizontal-rule",
+            action: function(editor) {
+                const cm = editor.codemirror;
+                const cursor = cm.getCursor();
+                
+                cm.replaceRange("\n\n---\n\n", cursor);
+                cm.focus();
+            },
+            className: "fa fa-minus",
+            title: "Insert horizontal line"
         },
         "link","|",
         "unordered-list", "ordered-list", "|",
@@ -92,22 +91,22 @@ const easyMDE = new EasyMDE({
         },
         "|",
         {
-        name: "editor-only",
-        action: showEditorOnly,
-        className: "fa fa-pen",
-        title: "Only editor view"
+            name: "editor-only",
+            action: showEditorOnly,
+            className: "fa fa-pen",
+            title: "Only editor view"
         },
         {
-        name: "preview-only",
-        action: showPreviewOnly,
-        className: "fa fa-eye",
-        title: "Only document view"
+            name: "preview-only",
+            action: showPreviewOnly,
+            className: "fa fa-eye",
+            title: "Only document view"
         },
         {
-        name: "side-by-side",
-        action: showSideBySide,
-        className: "fa fa-columns",
-        title: "Editor and document view"
+            name: "side-by-side",
+            action: showSideBySide,
+            className: "fa fa-columns",
+            title: "Editor and document view"
         },] 
 });
 
@@ -176,6 +175,7 @@ let activeWidget = null;
 let activeWidgetElement = null;
 let currentOperation = "";
 let currentTextContext = "";
+let generationHistory = []; //storico di tutte le generazioni
 
 // Funzione principale chiamata dai bottoni della Sidebar
 async function callAI(operation) {
@@ -184,7 +184,7 @@ async function callAI(operation) {
     const cm = easyMDE.codemirror;
     let text = cm.getSelection();
 
-    // Se non seleziona nulla, prende tutto
+    //se non seleziona nulla, prende tutto
     if (!text) text = easyMDE.value(); 
 
     if (!text || text.trim() === "") {
@@ -237,7 +237,7 @@ function createWidgetUI(operation, initialText, isLoading = false) {
     else if (operation === 'rewrite') opName = "Riscrittura";
     else if (operation === 'chart') opName = "Grafico";
     else if (operation.includes('hat')) {
-        // Traduzione manuale dei colori per avere un titolo in Italiano corretto
+        //traduzione manuale dei colori per avere un titolo in Italiano corretto
         const colorMap = {
             'white': 'Bianco', 'red': 'Rosso', 'black': 'Nero',
             'yellow': 'Giallo', 'green': 'Verde', 'blue': 'Blu'
@@ -261,7 +261,7 @@ function createWidgetUI(operation, initialText, isLoading = false) {
         container.classList.add(`ai-mode-${colorMode}`);
     }
 
-    // 4. HTML Interno
+    // HTML Interno
     container.innerHTML = `
         <div class="ai-widget-header">
             <span id="ai-widget-title">${headerTitle}</span>
@@ -300,7 +300,9 @@ function updateWidgetContent(newText) {
     if (!activeWidgetElement) return;
     const body = activeWidgetElement.querySelector("#ai-widget-body");
     body.innerText = newText;
-    body.classList.remove("ai-loading"); 
+    body.classList.remove("ai-loading");
+
+    saveToHistory(currentOperation, newText); //salva nello storico
 }
 
 // AZIONI WIDGET
@@ -326,17 +328,31 @@ function confirmAiInsert() {
     const body = activeWidgetElement.querySelector("#ai-widget-body");
     const titleElement = activeWidgetElement.querySelector("#ai-widget-title");
     const finalText = body.innerText;
-    const titleText = titleElement ? titleElement.innerText : "// AI Generated Content"; 
+
+    if (!finalText || finalText.trim() === "" || finalText.includes("Errore:")) {
+        notify("Nessun contenuto valido da inserire", "error");
+        return;
+    }
     
     const cm = easyMDE.codemirror;
+
+    //rimuove il widget
+    const widgetLine = activeWidget.line;
+    removeAiWidget();
+
+    //inserisce il testo nella posizione dove era il widget
     const separator = "\n---\n";
     const textToInsert = `\n${separator}\`${titleText}\`\n\n${finalText}\n${separator}\n`;
 
-    const lineNo = cm.getLineHandle(activeWidget.line).lineNo();
-    cm.replaceRange(textToInsert, { line: lineNo + 1, ch: 0 });
+    //trova la linea corretta (quella dopo il widget rimosso)
+    const insertPos = { line: widgetLine, ch: 0 };
+    cm.replaceRange(textToInsert, insertPos);
 
-    notify("Contenuto inserito nel documento!");
-    removeAiWidget();
+    //sposta il cursore dopo il testo inserito
+    const newLines = textToInsert.split('\n').length;
+    cm.setCursor({ line: widgetLine + newLines, ch: 0 });
+    
+    notify("✅ Contenuto inserito nel documento!");
 }
 
 
@@ -344,7 +360,136 @@ function confirmAiInsert() {
    FILE SYSTEM & DB (Salvataggio, Caricamento, Test)
    ========================================= */
 
-// TEST CONNESSIONE DB (Aggiornato con pallino colorato)
+// GESTIONE STORIA GENERAZIONI
+function saveToHistory(operation, generatedText) {
+    const now = new Date();
+    const timeString = now.toLocaleDateString('it-IT') + ' ' + now.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit', second: '2-digit'});
+    
+    let opName = "AI Assistant";
+    if (operation === 'summary') opName = "Riassunto";
+    else if (operation === 'distant_writing') opName = "Distant Writing";
+    else if (operation === 'fix_grammar') opName = "Correzione Grammaticale";
+    else if (operation === 'rewrite') opName = "Riscrittura";
+    else if (operation === 'chart') opName = "Grafico";
+    else if (operation.includes('hat')) {
+        const colorMap = {
+            'white': 'Bianco', 'red': 'Rosso', 'black': 'Nero',
+            'yellow': 'Giallo', 'green': 'Verde', 'blue': 'Blu'
+        };
+        const colorKey = operation.split('_')[0];
+        opName = "Cappello " + (colorMap[colorKey] || colorKey.toUpperCase());
+    }
+    else if (operation.includes('translate')) {
+        opName = "Traduzione " + operation.split('_')[1].toUpperCase();
+    }
+    
+    const historyItem = {
+        id: Date.now(),
+        operation: operation,
+        operationName: opName,
+        text: generatedText,
+        timestamp: now.toISOString(),
+        displayTime: timeString
+    };
+    
+    generationHistory.unshift(historyItem); //aggiungi all'inizio (più recente prima)
+    
+    //salva in localStorage per persistenza
+    try {
+        localStorage.setItem('ai_generation_history', JSON.stringify(generationHistory));
+    } catch (e) {
+        console.warn("Impossibile salvare la storia in localStorage:", e);
+    }
+}
+
+function loadHistoryFromStorage() {
+    try {
+        const stored = localStorage.getItem('ai_generation_history');
+        if (stored) {
+            generationHistory = JSON.parse(stored);
+        }
+    } catch (e) {
+        console.warn("Impossibile caricare la storia da localStorage:", e);
+        generationHistory = [];
+    }
+}
+
+function toggleHistoryView() {
+    const editorView = document.getElementById('editor-view');
+    const historyView = document.getElementById('history-view');
+    
+    if (historyView.classList.contains('active')) {
+        //torna all'editor
+        historyView.classList.remove('active');
+        editorView.style.display = 'flex';
+        //refresh dell'editor dopo il cambio vista
+        setTimeout(() => {
+            easyMDE.codemirror.refresh();
+        }, 100);
+    } else {
+        //vai alla storia
+        editorView.style.display = 'none';
+        historyView.classList.add('active');
+        renderHistory();
+    }
+}
+
+function renderHistory() {
+    const container = document.getElementById('history-content');
+    
+    if (generationHistory.length === 0) {
+        container.innerHTML = `
+            <div class="history-empty">
+                <i class="fa fa-robot"></i>
+                <p>Nessuna generazione salvata ancora.</p>
+                <p>Le tue generazioni AI appariranno qui.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    generationHistory.forEach(item => {
+        html += `
+            <div class="history-item">
+                <div class="history-item-header">
+                    <span class="history-item-title">${item.operationName}</span>
+                    <span class="history-item-date">${item.displayTime}</span>
+                </div>
+                <div class="history-item-content">${item.text}</div>
+                <div class="history-item-actions">
+                    <button class="btn-copy" onclick="copyHistoryItem(${item.id})">
+                        <i class="fa fa-copy"></i>
+                        Copia Testo
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function copyHistoryItem(itemId) {
+    const item = generationHistory.find(h => h.id === itemId);
+    if (!item) {
+        notify("Elemento non trovato", "error");
+        return;
+    }
+    
+    navigator.clipboard.writeText(item.text)
+        .then(() => notify("📋 Testo copiato negli appunti!"))
+        .catch(e => {
+            notify("Errore durante la copia", "error");
+            console.error(e);
+        });
+}
+
+//carica lo storico all'avvio
+loadHistoryFromStorage();
+
+
+// TEST CONNESSIONE DB (con pallino colorato)
 async function testConnection() {
     const statusDot = document.getElementById('db-status');
     try {
