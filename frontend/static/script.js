@@ -21,8 +21,9 @@ const easyMDE = new EasyMDE({
     autofocus: true,
     inputStyle: "contenteditable", 
     status: ["autosave", "lines", "words", "cursor"], 
+
+    syncSideBySidePreviewScroll: false, //fix scroll split view
     
-    // LA TUA TOOLBAR (Non modificata)
     toolbar: [
         "undo", "redo", "|",
         "bold", "italic",
@@ -107,24 +108,63 @@ const easyMDE = new EasyMDE({
             action: showSideBySide,
             className: "fa fa-columns",
             title: "Editor and document view"
-        },] 
+        },],
+
+        //configurazione per gestire meglio l'anteprima
+    previewRender: function(plainText) {
+        return easyMDE.markdown(plainText); //per rendering anteprima
+    }
+
 });
 
-//questa va messa per far comparire di default la side by side view
-showSideBySide();
+// Funzione per evidenziare i pulsanti attivi della toolbar
+function updateToolbarButtons() {
+    //rimuovi tutte le classi active
+    document.querySelectorAll('.editor-toolbar button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (easyMDE.isPreviewActive() && !easyMDE.isSideBySideActive()) {
+        document.querySelector('.editor-toolbar button[title="Only document view"]').classList.add('active');
+    } else if (easyMDE.isSideBySideActive()) {
+        document.querySelector('.editor-toolbar button[title="Editor and document view"]').classList.add('active');
+    } else {
+        document.querySelector('.editor-toolbar button[title="Only editor view"]').classList.add('active');
+    }
+}
+
+
 function showEditorOnly() {
     if (easyMDE.isPreviewActive()) easyMDE.togglePreview();
     if (easyMDE.isSideBySideActive()) easyMDE.toggleSideBySide();
+    highlightActiveButton('editor-only');
 }
 
 function showPreviewOnly() {
     if (easyMDE.isSideBySideActive()) easyMDE.toggleSideBySide();
     if (!easyMDE.isPreviewActive()) easyMDE.togglePreview();
+    highlightActiveButton('preview-only');
 }
 
 function showSideBySide() {
     if (easyMDE.isPreviewActive()) easyMDE.togglePreview();
     if (!easyMDE.isSideBySideActive()) easyMDE.toggleSideBySide();
+    highlightActiveButton('side-by-side');
+}
+
+//pulsante attivo (quale vista è attiva)
+function highlightActiveButton(activeMode) {
+    document.querySelectorAll('.editor-toolbar button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (activeMode === 'editor-only') {
+        document.querySelector('.editor-toolbar button[title="Only editor view"]')?.classList.add('active');
+    } else if (activeMode === 'preview-only') {
+        document.querySelector('.editor-toolbar button[title="Only document view"]')?.classList.add('active');
+    } else if (activeMode === 'side-by-side') {
+        document.querySelector('.editor-toolbar button[title="Editor and document view"]')?.classList.add('active');
+    }
 }
 
 
@@ -134,12 +174,20 @@ function showSideBySide() {
 // Apre/Chiude il pannello laterale (chiamato dall'icona stelline)
 function toggleSidePanel(panelId) {
     const panel = document.getElementById('side-panel');
+
+    //rimuovi active-tab da tutte le icone
+    document.querySelectorAll('.icon-btn').forEach(btn => {
+        btn.classList.remove('active-tab');
+    });
+    
+    //aggiungi active-tab solo all'icona cliccata
+    event.currentTarget.classList.add('active-tab');
     
     // Logica inversa: se ha la classe 'closed', lo apriamo rimuovendola
     if (panel.classList.contains('closed')) {
         panel.classList.remove('closed'); 
         
-        // Trucco: ridisegna l'editor dopo l'animazione CSS per adattare la larghezza
+        //ridisegna l'editor dopo l'animazione CSS per adattare la larghezza
         setTimeout(() => {
             easyMDE.codemirror.refresh();
         }, 300);
@@ -152,6 +200,11 @@ function toggleSidePanel(panelId) {
 // Chiude forzatamente il pannello (tasto X)
 function closeSidePanel() {
     document.getElementById('side-panel').classList.add('closed');
+
+    //rimuovi active-tab da tutte le icone
+    document.querySelectorAll('.icon-btn').forEach(btn => {
+        btn.classList.remove('active-tab');
+    });
 }
 
 // Gestione Accordion (apre/chiude sottomenu Cappelli e Lingue)
@@ -286,13 +339,25 @@ function createWidgetUI(operation, initialText, isLoading = false) {
     `;
 
     activeWidgetElement = container;
-    const cursor = cm.getCursor("to");
+    const cursor = cm.getCursor();
+
+    //crea il widget e lo posiziona dopo la riga corrente
     activeWidget = cm.addLineWidget(cursor.line, container, { 
         coverGutter: false, 
-        noHScroll: true 
+        noHScroll: true,
+        insertAt: cursor.line + 1 //inserisce dopo la riga corrente
     });
+
+    //scrollIntoView causa problemi con CodeMirror; usa il sistema di scroll interno di CodeMirror
+    cm.scrollIntoView({
+        from: { line: cursor.line, ch: 0 },
+        to: { line: cursor.line + 1, ch: 0 }
+    }, 200); // 200ms per un'animazione smooth
     
-    container.scrollIntoView({ behavior: "smooth", block: "center" });
+    //refresh per garantire che il rendering sia corretto
+    setTimeout(() => {
+        cm.refresh();
+    }, 100);
 }
 
 
@@ -342,6 +407,7 @@ function confirmAiInsert() {
 
     //inserisce il testo nella posizione dove era il widget
     const separator = "\n---\n";
+    const titleText = titleElement ? titleElement.innerText : "Generato da AI";
     const textToInsert = `\n${separator}\`${titleText}\`\n\n${finalText}\n${separator}\n`;
 
     //trova la linea corretta (quella dopo il widget rimosso)
@@ -359,7 +425,6 @@ function confirmAiInsert() {
 /* =========================================
    FILE SYSTEM & DB (Salvataggio, Caricamento, Test)
    ========================================= */
-
 // GESTIONE STORIA GENERAZIONI
 function saveToHistory(operation, generatedText) {
     const now = new Date();
@@ -421,14 +486,14 @@ function toggleHistoryView() {
     if (historyView.classList.contains('active')) {
         //torna all'editor
         historyView.classList.remove('active');
-        editorView.style.display = 'flex';
+        editorView.classList.remove('hidden');
         //refresh dell'editor dopo il cambio vista
         setTimeout(() => {
             easyMDE.codemirror.refresh();
         }, 100);
     } else {
         //vai alla storia
-        editorView.style.display = 'none';
+        editorView.classList.add('hidden');
         historyView.classList.add('active');
         renderHistory();
     }
@@ -436,7 +501,7 @@ function toggleHistoryView() {
 
 function renderHistory() {
     const container = document.getElementById('history-content');
-    
+    //storia vuota
     if (generationHistory.length === 0) {
         container.innerHTML = `
             <div class="history-empty">
@@ -447,7 +512,7 @@ function renderHistory() {
         `;
         return;
     }
-    
+    //card delle generazioni
     let html = '';
     generationHistory.forEach(item => {
         html += `
@@ -462,6 +527,11 @@ function renderHistory() {
                         <i class="fa fa-copy"></i>
                         Copia Testo
                     </button>
+
+                    <button class="btn-delete-history" onclick="deleteHistoryItem(${item.id})">
+                        <i class="fa fa-trash"></i>
+                        Elimina
+                    </button>
                 </div>
             </div>
         `;
@@ -470,6 +540,7 @@ function renderHistory() {
     container.innerHTML = html;
 }
 
+//l'utente può copiare il testo di uan generazione dallo storico (unica azione che può fare oltre a eliminarla)
 function copyHistoryItem(itemId) {
     const item = generationHistory.find(h => h.id === itemId);
     if (!item) {
@@ -485,6 +556,42 @@ function copyHistoryItem(itemId) {
         });
 }
 
+function deleteHistoryItem(itemId) {
+    // Trova l'indice dell'elemento
+    const index = generationHistory.findIndex(h => h.id === itemId);
+    
+    if (index === -1) {
+        notify("Elemento non trovato", "error");
+        return;
+    }
+    
+    // Rimuove dall'array
+    generationHistory.splice(index, 1);
+    
+    // Aggiorna localStorage
+    try {
+        localStorage.setItem('ai_generation_history', JSON.stringify(generationHistory));
+    } catch (e) {
+        console.warn("Impossibile aggiornare localStorage:", e);
+    }
+    
+    // Animazione di rimozione della card
+    const card = document.querySelector(`.history-item[data-id="${itemId}"]`);
+    if (card) {
+        card.style.transition = 'all 0.3s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(-20px)';
+        
+        setTimeout(() => {
+            renderHistory(); // Re-renderizza la lista
+            notify("🗑️ Generazione eliminata");
+        }, 300);
+    } else {
+        renderHistory();
+        notify("🗑️ Generazione eliminata");
+    }
+}
+
 //carica lo storico all'avvio
 loadHistoryFromStorage();
 
@@ -496,15 +603,12 @@ async function testConnection() {
         const response = await fetch("http://localhost:8000/api/test-db-connection");
         const data = await response.json();
         if(data.status === "success") {
-            notify(data.message);   
-            statusDot.style.color = "#2ecc71"; // Verde
+            notify(data.message);
         } else {
-            notify("Errore DB: non te lo dico gneeee");
-            statusDot.style.color = "#e74c3c"; // Rosso
+            notify("Errore nel database", "error");
         }
     } catch (e) {
         notify("Backend non raggiungibile", "error");
-        statusDot.style.color = "#e74c3c"; // Rosso
     }
 }
 
@@ -557,3 +661,12 @@ if (fileInputElement) {
         reader.readAsText(file);
     });
 }
+
+
+// INIZIALIZZAZIONE VISTA DI DEFAULT (side-by-side)
+document.addEventListener('DOMContentLoaded', function() {
+    // Imposta split view di default con un piccolo delay
+    setTimeout(() => {
+        showSideBySide();
+    }, 100);
+});

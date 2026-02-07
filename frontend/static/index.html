@@ -8,10 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="mini.css">
 </head>
 <body>
 
-    <input type="file" id="file-input" style="display: none;" accept=".md,.txt,.markdown"> <!--per caricare file-->
+    <input type="file" id="file-input" class="hidden" accept=".md,.txt,.markdown"> <!--per caricare file-->
 
     <div class="app-container">
         <!--BARRA LATERALE PER CARICARE/SCARICAR FILE + FUNZIONI AI-->
@@ -25,7 +26,7 @@
                     <i class="fa fa-save"></i>
                 </div>
 
-                <div class="icon-btn active-tab" onclick="toggleSidePanel('ai-panel')" title="Strumenti AI">
+                <div class="icon-btn" onclick="toggleSidePanel('ai-panel')" title="Strumenti AI">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                 </div>
                 <div class="icon-btn" onclick="callAI('distant_writing')" title="Distant Writing">
@@ -46,7 +47,7 @@
         </aside>
 
         <!--stile per sidebar che si apre quando si preme in uno dei pulsanti-->
-        <aside id="side-panel" class="side-panel">
+        <aside id="side-panel" class="side-panel closed">
             <div class="panel-header">
                 <span>✨ AI ASSISTANT</span>
                 <i class="fa fa-times close-panel-btn" onclick="closeSidePanel()"></i>

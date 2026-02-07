@@ -1,0 +1,48 @@
+/* =========================================
+   MINI.CSS - RESPONSIVE DESIGN
+   Solo breakpoints essenziali per adattare l'editor 
+   a desktop pi piccoli/finestre ridimensionate
+   ========================================= */
+
+/* UTILITY CLASSES (riutilizzabili) */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-center { 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gap-sm { gap: 0.5em; }
+.gap-md { gap: 1em; }
+.gap-lg { gap: 1.5em; }
+
+/* =========================================
+   DESKTOP PIÙ PICCOLI/TABLET (< 1024px)
+   ========================================= */
+@media (max-width: 1024px) {
+    .side-panel {
+        --width-panel: 14em;
+    }
+
+    .top-bar-mini {
+        padding: 0 1em;
+    }
+    
+    .doc-title-input-mini {
+        width: 12.5em;
+        font-size: 0.85em;
+    }
+    
+    .editor-wrapper {
+        padding: 0.75em;
+    }
+    
+    .history-item {
+        margin-bottom: 1em;
+    }
+    
+    .history-content {
+        padding: 1.5em;
+    }
+}
