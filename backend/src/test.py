@@ -1,39 +1,25 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 from auth import registra_utente, login_utente
-from Database.db import execute_write, execute_query
+from db.db import execute_query
 
-def test_completo():
-    print("--- 🧪 INIZIO TEST SISTEMA ---")
-    
-    email = "studente@progetto.it"
-    password = "password_sicura_2026"
+app = Flask(__name__)
+CORS(app) # Permette al frontend di parlare con il backend
 
-    # 1. Registrazione
-    print("1. Registrazione utente...")
-    if registra_utente(email, password):
-        print("✅ Utente creato.")
-    else:
-        print("❌ Errore registrazione (forse esiste già).")
+@app.route('/api/registrazione', methods=['POST'])
+def api_registra():
+    data = request.json
+    successo = registra_utente(data.get('email'), data.get('password'))
+    if successo:
+        return jsonify({"status": "success"}), 201
+    return jsonify({"status": "error"}), 400
 
-    # 2. Login
-    print("2. Verifica login...")
-    if login_utente(email, password):
-        print("✅ Login riuscito! La password hashata funziona.")
-    else:
-        print("❌ Login fallito! Qualcosa non va nell'hashing.")
-
-    # 3. Salvataggio Documento
-    print("3. Salvataggio documento...")
-    sql_doc = "INSERT INTO DOCUMENTO (Nome, Contenuto_documento, EMail_utente) VALUES (%s, %s, %s) RETURNING ID_documento"
-    id_doc = execute_write(sql_doc, ("Appunti AI", "Testo generato...", email))
-    
-    if id_doc:
-        print(f"✅ Documento salvato con ID: {id_doc}")
-
-    # 4. Lettura Finale
-    print("4. Lista documenti dell'utente:")
-    docs = execute_query("SELECT Nome FROM DOCUMENTO WHERE EMail_utente = %s", (email,))
-    for d in docs:
-        print(f"  - Documento trovato: {d['nome']}")
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.json
+    if login_utente(data.get('email'), data.get('password')):
+        return jsonify({"status": "authenticated"}), 200
+    return jsonify({"status": "denied"}), 401
 
 if __name__ == "__main__":
-    test_completo()
+    app.run(host='0.0.0.0', port=8000)

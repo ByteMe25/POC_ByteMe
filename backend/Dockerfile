@@ -4,7 +4,7 @@ FROM python:3.14.2-slim
 WORKDIR /app
 # cartella di lavoro di default
 
-COPY requirements.txt requirements.txt
+COPY backend/requirements.txt .
 # copia il file requirements.txt nella cartella in WORKDIR
 # requirements.txt specifica le librerie usate da python
 
@@ -18,3 +18,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # COPY src/ .
 # mette src nella cartella di lavoro
+
+# 3. COPIA TUTTO IL RESTO DEL CODICE (Fondamentale!)
+COPY . .
+# PYTHONPATH serve a Python per trovare la cartella /db fuori da /src
+ENV PYTHONPATH="/app"
+EXPOSE 8000
+CMD ["python", "src/test.py"]

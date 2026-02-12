@@ -6,17 +6,19 @@ services:
 
     container_name: poc-backend
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     volumes:
-      - ./backend/src:/app
+      - ./backend/src:/app/src
+      - ./db:/app/db
       # cambiamenti visibili senza ricostruzione del docker 
-    command: uvicorn db:app --host 0.0.0.0 --port 8000
+    #command: uvicorn db:app --host 0.0.0.0 --port 8000
     ports:
       - 8000:8000
     environment:  # aggiunte key Zucchetti
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+      - PYTHONPATH=/app
 
 
 
@@ -50,6 +52,7 @@ services:
       - 5433:5432
     volumes:
       - postgres_data:/var/lib/postgresql
+      - ./db/db.sql:/docker-entrypoint-initdb.d/init.sql
   
 volumes:
   postgres_data:

@@ -1,6 +1,6 @@
 import hashlib
 import os
-from Database.db import execute_write, execute_query
+from db.db import execute_write, execute_query
 
 def genera_hash(password):
     """Crea un hash sicuro: salt + hash."""
@@ -32,12 +32,12 @@ def verifica_password(password_inserita, hash_salvato):
 def registra_utente(email, password):
     """Salva l'utente con password hashata."""
     hash_sicuro = genera_hash(password)
-    sql = "INSERT INTO UTENTE (EMail, Password) VALUES (%s, %s)"
+    sql = "INSERT INTO UTENTE (Mail, Password) VALUES (%s, %s)"
     return execute_write(sql, (email, hash_sicuro))
 
 def login_utente(email, password):
     """Controlla se le credenziali sono valide."""
-    sql = "SELECT Password FROM UTENTE WHERE EMail = %s"
+    sql = "SELECT Password FROM UTENTE WHERE Mail = %s"
     risultato = execute_query(sql, (email,))
     if risultato:
         return verifica_password(password, risultato[0]['password'])

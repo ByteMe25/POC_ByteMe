@@ -670,3 +670,53 @@ document.addEventListener('DOMContentLoaded', function() {
         showSideBySide();
     }, 100);
 });
+
+
+// Indirizzo del tuo backend (porta 8000 mappata nel compose)
+const API_URL = "http://localhost:8000/api";
+
+// Funzione per REGISTRARE un utente
+async function registraUtente(email, password) {
+    try {
+        const response = await fetch(`${API_URL}/registrazione`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, password: password })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            console.log("✅ Registrazione riuscita:", data);
+            alert("Utente registrato!");
+        } else {
+            console.error("❌ Errore:", data.errore);
+            alert("Errore registrazione: " + data.errore);
+        }
+    } catch (error) {
+        console.error("Errore di connessione:", error);
+    }
+}
+
+// Funzione per il LOGIN
+async function loginUtente(email, password) {
+    try {
+        const response = await fetch(`${API_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, password: password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            console.log("✅ Login effettuato!", data);
+            // Qui potresti salvare l'email o un token e cambiare pagina
+            alert("Benvenuto!");
+        } else {
+            alert("Credenziali errate!");
+        }
+    } catch (error) {
+        console.error("Errore di connessione:", error);
+    }
+}

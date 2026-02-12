@@ -3,10 +3,10 @@ from psycopg2.extras import RealDictCursor
 import os
 
 # Credenziali per Docker
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_NAME = os.getenv("DB_NAME", "editor_db")
-DB_USER = os.getenv("DB_USER", "admin")
-DB_PASS = os.getenv("DB_PASS", "password123")
+DB_HOST = os.getenv("DB_HOST", "db")
+DB_NAME = os.getenv("DB_NAME", "poc_db")
+DB_USER = os.getenv("DB_USER", "postgres")
+DB_PASS = os.getenv("DB_PASS", "postgres")
 
 def get_db_connection():
     return psycopg2.connect(
