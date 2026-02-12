@@ -341,11 +341,13 @@ function createWidgetUI(operation, initialText, isLoading = false) {
     activeWidgetElement = container;
     const cursor = cm.getCursor();
 
-    //crea il widget e lo posiziona dopo la riga corrente
+    //salva la posizione del cursore per usarla in confirmAiInsert
+    widgetCursorPosition = { line: cursor.line, ch: cursor.ch };
+
+    //crea il widget e lo posiziona dopo la riga corrente: addLineWidget aggiunge DOPO la riga specificata
     activeWidget = cm.addLineWidget(cursor.line, container, { 
         coverGutter: false, 
-        noHScroll: true,
-        insertAt: cursor.line + 1 //inserisce dopo la riga corrente
+        noHScroll: true
     });
 
     //scrollIntoView causa problemi con CodeMirror; usa il sistema di scroll interno di CodeMirror
@@ -376,6 +378,7 @@ function removeAiWidget() {
         activeWidget.clear();
         activeWidget = null;
         activeWidgetElement = null;
+        widgetCursorPosition = null; //pulisce anche la posizione salvata
     }
 }
 
@@ -388,7 +391,10 @@ function regenerateAi() {
 }
 
 function confirmAiInsert() {
-    if (!activeWidgetElement) return;
+    if (!activeWidgetElement || !widgetCursorPosition){
+        notify("Errore: widget non trovato", "error");
+        return;
+    }
 
     const body = activeWidgetElement.querySelector("#ai-widget-body");
     const titleElement = activeWidgetElement.querySelector("#ai-widget-title");
@@ -401,6 +407,9 @@ function confirmAiInsert() {
     
     const cm = easyMDE.codemirror;
 
+    //salva la posizione PRIMA di rimuovere il widget
+    const insertLine = widgetCursorPosition.line + 1; //inserisci dopo la riga del cursore originale
+
     //rimuove il widget
     const widgetLine = activeWidget.line;
     removeAiWidget();
@@ -410,13 +419,15 @@ function confirmAiInsert() {
     const titleText = titleElement ? titleElement.innerText : "Generato da AI";
     const textToInsert = `\n${separator}\`${titleText}\`\n\n${finalText}\n${separator}\n`;
 
-    //trova la linea corretta (quella dopo il widget rimosso)
-    const insertPos = { line: widgetLine, ch: 0 };
-    cm.replaceRange(textToInsert, insertPos);
+    //inserisce il testo alla posizione salvata
+    cm.replaceRange(textToInsert, { line: insertLine, ch: 0 });
 
-    //sposta il cursore dopo il testo inserito
+    //sposta il cursore alla fine del testo inserito
     const newLines = textToInsert.split('\n').length;
-    cm.setCursor({ line: widgetLine + newLines, ch: 0 });
+    cm.setCursor({ line: insertLine + newLines - 1, ch: 0 });
+    
+    //focus sull'editor
+    cm.focus();
     
     notify("✅ Contenuto inserito nel documento!");
 }
@@ -457,7 +468,7 @@ function saveToHistory(operation, generatedText) {
         displayTime: timeString
     };
     
-    generationHistory.unshift(historyItem); //aggiungi all'inizio (più recente prima)
+    generationHistory.unshift(historyItem); //aggiunge all'inizio (più recente prima)
     
     //salva in localStorage per persistenza
     try {
