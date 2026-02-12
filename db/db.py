@@ -26,7 +26,6 @@ def execute_write(query, params=None):
         with conn.cursor() as cur:
             try:
                 cur.execute(query, params)
-                # Recupera l'ID se la query usa RETURNING
                 res = cur.fetchone()[0] if "RETURNING" in query.upper() else True
                 conn.commit()
                 return res
