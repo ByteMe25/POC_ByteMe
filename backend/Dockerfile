@@ -24,4 +24,4 @@ COPY . .
 # PYTHONPATH serve a Python per trovare la cartella /db fuori da /src
 ENV PYTHONPATH="/app"
 EXPOSE 8000
-CMD ["python", "src/test.py"]
+CMD ["python", "src/app.py"]
