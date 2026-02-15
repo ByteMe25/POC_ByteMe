@@ -207,7 +207,7 @@ html, body {
 }
 
 .top-bar-mini {
-    height: 3.5em; 
+    height: 4em; 
     height: var(--header-height);
     background-color: var(--bg-header);
     border-bottom: 1px solid var(--border-light);
@@ -216,6 +216,8 @@ html, body {
     justify-content: space-between;
     padding: 0 1.5em;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    flex-shrink: 0; /*previene restringimento*/
+    min-height: var(--header-height);
 }
 
 .doc-info {
@@ -444,6 +446,7 @@ html, body {
     border-radius: var(--radius-std) var(--radius-std) 0 0;
     padding: 0.2em;
     opacity: 1;
+    flex-shrink: 0;
 }
 
 /* Bottoni della Toolbar */

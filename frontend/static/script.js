@@ -133,7 +133,6 @@ function updateToolbarButtons() {
     }
 }
 
-
 function showEditorOnly() {
     if (easyMDE.isPreviewActive()) easyMDE.togglePreview();
     if (easyMDE.isSideBySideActive()) easyMDE.toggleSideBySide();
@@ -175,7 +174,7 @@ function highlightActiveButton(activeMode) {
 function toggleSidePanel(panelId) {
     const panel = document.getElementById('side-panel');
 
-    //rimuovi active-tab da tutte le icone
+    //rimuove active-tab da tutte le icone
     document.querySelectorAll('.icon-btn').forEach(btn => {
         btn.classList.remove('active-tab');
     });
@@ -183,7 +182,7 @@ function toggleSidePanel(panelId) {
     //aggiungi active-tab solo all'icona cliccata
     event.currentTarget.classList.add('active-tab');
     
-    // Logica inversa: se ha la classe 'closed', lo apriamo rimuovendola
+    //logica inversa: se ha la classe 'closed', lo apriamo rimuovendola
     if (panel.classList.contains('closed')) {
         panel.classList.remove('closed'); 
         
@@ -197,7 +196,7 @@ function toggleSidePanel(panelId) {
     }
 }
 
-// Chiude forzatamente il pannello (tasto X)
+//chiude forzatamente il pannello (tasto X)
 function closeSidePanel() {
     document.getElementById('side-panel').classList.add('closed');
 
@@ -232,10 +231,20 @@ let generationHistory = []; //storico di tutte le generazioni
 
 // Funzione principale chiamata dai bottoni della Sidebar
 async function callAI(operation) {
+    //se è nella sezione dello storico non si possono usare funzioni AI
+    const historyView = document.getElementById('history-view');
+    if (historyView && historyView.classList.contains('active')) {
+        notify("Torna all'editor per usare le funzioni AI", "error");
+        return;
+    }
+
     removeAiWidget(); 
 
     const cm = easyMDE.codemirror;
     let text = cm.getSelection();
+
+    //salva la posizione finale della selezione (o cursore se nessuna selezione)
+    const selectionEnd = cm.getCursor("to"); // "to" = fine della selezione
 
     //se non seleziona nulla, prende tutto
     if (!text) text = easyMDE.value(); 
@@ -248,7 +257,8 @@ async function callAI(operation) {
     currentOperation = operation;
     currentTextContext = text;
 
-    createWidgetUI(operation, "Sto elaborando...", true);
+    //passa la posizione finale al widget
+    createWidgetUI(operation, "Sto elaborando...", true, selectionEnd);
     
     performApiCall(text, operation);
 }
@@ -276,11 +286,14 @@ async function performApiCall(text, operation) {
 /* =========================================
    INTERFACCIA WIDGET (DOM)
    ========================================= */
-function createWidgetUI(operation, initialText, isLoading = false) {
+function createWidgetUI (operation, initialText, isLoading = false, cursorPosition = null){
     const cm = easyMDE.codemirror;
     const now = new Date();
     const timeString = now.toLocaleDateString('it-IT') + ' ' + now.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'});
     
+    //usa la posizione passata o prende quella corrente
+    const cursor = cursorPosition || cm.getCursor("to");
+
     // Titolo e Nome Operazione
     let opName = "AI Assistant";
     
@@ -288,7 +301,7 @@ function createWidgetUI(operation, initialText, isLoading = false) {
     else if (operation === 'distant_writing') opName = "Distant Writing";
     else if (operation === 'fix_grammar') opName = "Correzione Grammaticale";
     else if (operation === 'rewrite') opName = "Riscrittura";
-    else if (operation === 'chart') opName = "Grafico";
+    else if (operation === 'chart') opName = "Grafico"; //DA FARE
     else if (operation.includes('hat')) {
         //traduzione manuale dei colori per avere un titolo in Italiano corretto
         const colorMap = {
@@ -339,7 +352,6 @@ function createWidgetUI(operation, initialText, isLoading = false) {
     `;
 
     activeWidgetElement = container;
-    const cursor = cm.getCursor();
 
     //salva la posizione del cursore per usarla in confirmAiInsert
     widgetCursorPosition = { line: cursor.line, ch: cursor.ch };
@@ -429,7 +441,7 @@ function confirmAiInsert() {
     //focus sull'editor
     cm.focus();
     
-    notify("✅ Contenuto inserito nel documento!");
+    notify("✅ Contenuto inserito correttamente!");
 }
 
 
@@ -493,6 +505,9 @@ function loadHistoryFromStorage() {
 function toggleHistoryView() {
     const editorView = document.getElementById('editor-view');
     const historyView = document.getElementById('history-view');
+
+    //chiude pannello laterale quando cambia vista
+    closeSidePanel();
     
     if (historyView.classList.contains('active')) {
         //torna all'editor
@@ -551,7 +566,7 @@ function renderHistory() {
     container.innerHTML = html;
 }
 
-//l'utente può copiare il testo di uan generazione dallo storico (unica azione che può fare oltre a eliminarla)
+//l'utente può copiare il testo di una generazione dallo storico (unica azione che può fare oltre a eliminarla)
 function copyHistoryItem(itemId) {
     const item = generationHistory.find(h => h.id === itemId);
     if (!item) {
@@ -625,6 +640,8 @@ async function testConnection() {
 
 // SCARICA FILE
 function downloadFile() {
+    closeSidePanel(); //chiude pannello laterale
+
     var testo = easyMDE.value();
     if(testo.trim() === "") {
         notify("Il documento è vuoto!", "error");
@@ -646,6 +663,8 @@ function downloadFile() {
 
 // CARICA FILE (Trigger Input nascosto)
 function triggerUpload() {
+    closeSidePanel(); //chiude pannello laterale
+
     const fileInput = document.getElementById('file-input');
     if(fileInput) {
         fileInput.click();
@@ -683,7 +702,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-// Indirizzo del tuo backend (porta 8000 mappata nel compose)
+// Indirizzo del backend (porta 8000 mappata nel compose)
 const API_URL = "http://localhost:8000/api";
 
 // Funzione per REGISTRARE un utente
@@ -722,7 +741,7 @@ async function loginUtente(email, password) {
 
         if (response.ok) {
             console.log("✅ Login effettuato!", data);
-            // Qui potresti salvare l'email o un token e cambiare pagina
+            // si può anche salvare email o un token e cambiare pagina
             alert("Benvenuto!");
         } else {
             alert("Credenziali errate!");
