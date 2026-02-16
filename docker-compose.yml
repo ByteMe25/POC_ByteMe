@@ -15,10 +15,11 @@ services:
     #command: uvicorn db:app --host 0.0.0.0 --port 8000
     ports:
       - 8000:8000
-    environment:  # aggiunte key Zucchetti
+    environment:  # aggiunte key Zucchetti e secre key sessioni
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL}
       - PYTHONPATH=/app
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
 
 
 

@@ -701,52 +701,76 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
 });
 
-
-// Indirizzo del backend (porta 8000 mappata nel compose)
+// GESTIONE VISTE PER UTENTI LOGGATI E NON
 const API_URL = "http://localhost:8000/api";
 
-// Funzione per REGISTRARE un utente
-async function registraUtente(email, password) {
+// --- FUNZIONE LOGOUT ---
+async function logoutUtente() {
     try {
-        const response = await fetch(`${API_URL}/registrazione`, {
+        const response = await fetch(`${API_URL}/logout`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email, password: password })
-        });
-
-        const data = await response.json();
-        
-        if (response.ok) {
-            console.log("✅ Registrazione riuscita:", data);
-            alert("Utente registrato!");
-        } else {
-            console.error("❌ Errore:", data.errore);
-            alert("Errore registrazione: " + data.errore);
-        }
-    } catch (error) {
-        console.error("Errore di connessione:", error);
-    }
-}
-
-// Funzione per il LOGIN
-async function loginUtente(email, password) {
-    try {
-        const response = await fetch(`${API_URL}/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email, password: password })
+            credentials: "include",
+            headers: { "Content-Type": "application/json" }
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            console.log("✅ Login effettuato!", data);
-            // si può anche salvare email o un token e cambiare pagina
-            alert("Benvenuto!");
+            console.log("✅ Logout effettuato!", data);
+            //alert("Logout eseguito con successo.");
+            // Qui potresti reindirizzare l'utente alla pagina di login:
+            window.location.href = "index.html";
         } else {
-            alert("Credenziali errate!");
+            console.error("❌ Logout fallito:", data.errore);
+            alert("Errore durante il logout!");
         }
-    } catch (error) {
-        console.error("Errore di connessione:", error);
+    }
+    catch (error) {
+        console.error("❌ Errore di connessione:", error);
+        alert("Errore di connessione durante il logout.");
     }
 }
+
+
+const loginLink = document.getElementById('login-link');
+const registerLink = document.getElementById('register-link');
+const userEmailElement = document.getElementById('user-email');
+const logoutButton = document.querySelector('.logout-btn');
+
+userEmailElement.style.display = 'none';
+logoutButton.style.display = 'none';
+
+async function checkAuthStatus() {
+    try {
+        const response = await fetch(`${API_URL}/check-auth`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include"
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.authenticated) {
+            loginLink.style.display = 'none';
+            registerLink.style.display = 'none';
+            userEmailElement.style.display = 'block';
+            logoutButton.style.display = 'block';
+            userEmailElement.innerText = data.email || "Utente";
+        } else {
+            loginLink.style.display = 'block';
+            registerLink.style.display = 'block';
+            userEmailElement.style.display = 'none';
+            logoutButton.style.display = 'none';
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Errore di connessione.");
+        loginLink.style.display = 'block'; 
+        registerLink.style.display = 'block';
+        userEmailElement.style.display = 'none';
+        logoutButton.style.display = 'none';
+    }
+}
+
+addEventListener('DOMContentLoaded', checkAuthStatus);
+

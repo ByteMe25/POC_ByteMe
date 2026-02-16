@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 from auth import registra_utente, login_utente
 from db.db import execute_query
@@ -32,7 +32,11 @@ except ImportError:
 
 
 app = Flask(__name__)
-CORS(app) # Permette al frontend di parlare con il backend
+CORS(app, 
+     origins=["http://localhost:8080"],
+     supports_credentials=True) # Permette al frontend di parlare con il backend
+
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey") # Sempre diversa
 
 # ENDPOINT AUTENTICAZIONE
 @app.route('/api/registrazione', methods=['POST'])
@@ -47,9 +51,26 @@ def api_registra():
 def api_login():
     data = request.json
     if login_utente(data.get('email'), data.get('password')):
+        session['logged_in'] = True
+        session['email'] = data.get('email')
         return jsonify({"status": "authenticated"}), 200
     return jsonify({"status": "denied"}), 401
 
+@app.route('/api/check-auth', methods=['POST'])
+def check_auth():
+    if session.get('logged_in'):
+        return jsonify({
+            "authenticated": True,
+            "email": session.get('email')
+        }), 200
+    return jsonify({"authenticated": False}), 200
+
+@app.route('/api/logout', methods=['POST'])
+def api_logout():
+    if session.get('logged_in'):  
+        session.clear()
+        return jsonify({"status": "logged_out"}), 200
+    return jsonify({"status": "not_logged_in"}), 400
 
 # ENDPOINT AI
 @app.route('/api/ai/generate', methods=['POST'])

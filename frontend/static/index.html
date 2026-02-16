@@ -9,13 +9,14 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="mini.css">
+    
 </head>
 <body>
 
     <input type="file" id="file-input" class="hidden" accept=".md,.txt,.markdown"> <!--per caricare file-->
 
     <div class="app-container">
-        <!--BARRA LATERALE PER CARICARE/SCARICAR FILE + FUNZIONI AI-->
+        <!--BARRA LATERALE PER CARICARE/SCARICARE FILE + FUNZIONI AI-->
         <aside class="activity-bar">
             <div class="activity-top">
 
@@ -113,8 +114,12 @@
                         <input type="text" id="doc-title" class="doc-title-input-mini" value="Untitled" placeholder="Nome file...">
                         <span class="file-ext">.md</span>
                     </div>
-                    <a href="Login.html">Accedi</a>
-                    <a href="Register.html">Registrati</a>    
+                    <a id="login-link" href="Login.html">Accedi</a>
+                    <a id="register-link" href="Register.html">Registrati</a>  
+
+                    <!--inizialmente nascosti-->
+                    <button class ="logout-btn" onclick="logoutUtente()"> Logout </button>
+                    <p id="user-email"> %%email%% </p>
                 </div>
                 <!--text area easyMDE-->
                 <div class="editor-wrapper">
@@ -151,6 +156,7 @@
     <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
-    <script src="script.js"></script> 
+    <script src="script.js"></script>
+    
 </body>
 </html>

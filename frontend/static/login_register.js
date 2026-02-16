@@ -21,6 +21,7 @@ async function registraUtente() {
         const response = await fetch(`${API_URL}/registrazione`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({ 
                 email: emailValue, 
                 password: passwordValue 
@@ -35,6 +36,7 @@ async function registraUtente() {
             alert("Utente registrato con successo!");
             emailField.value = ""; //Pulisce i campi dopo la registrazione
             passwordField.value = "";
+            window.location.href = "Login.html";
         } else {
             console.error("❌ Errore dal server:", data.errore);
             alert("Errore registrazione: " + data.errore);
@@ -56,6 +58,7 @@ async function loginUtente() {
         const response = await fetch(`${API_URL}/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({ 
                 email: emailValue, 
                 password: passwordValue 
@@ -66,9 +69,8 @@ async function loginUtente() {
 
         if (response.ok) {
             console.log("✅ Login effettuato!", data);
-            alert("Bentornato! Accesso eseguito.");
-            // Qui potresti reindirizzare l'utente:
-            // window.location.href = "dashboard.html";
+            //alert("Bentornato! Accesso eseguito.");
+            window.location.href = "index.html";
         } else {
             console.error("❌ Login fallito:", data.errore);
             alert("Credenziali errate!");
@@ -78,3 +80,5 @@ async function loginUtente() {
         alert("Errore di connessione durante il login.");
     }
 }
+
+
