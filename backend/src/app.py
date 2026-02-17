@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 from auth import registra_utente, login_utente
 from db.db import execute_query
+from db.db import init_db
 
 # CONFIGURAZIONE OPENAI (LLM)
 try:
@@ -38,7 +39,15 @@ CORS(app,
 
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey") # Sempre diversa
 
-# ENDPOINT AUTENTICAZIONE
+# Crea le tabelle al primo avvio (utile in sviluppo; in prod usa Alembic)
+with app.app_context():
+    init_db()
+
+
+# ----------------------------------------------------------------
+# ENDPOINT AUTENTICAZIONE — logica identica alla versione originale
+# ----------------------------------------------------------------
+
 @app.route('/api/registrazione', methods=['POST'])
 def api_registra():
     data = request.json
@@ -46,6 +55,7 @@ def api_registra():
     if successo:
         return jsonify({"status": "success"}), 201
     return jsonify({"status": "error"}), 400
+
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
@@ -56,6 +66,7 @@ def api_login():
         return jsonify({"status": "authenticated"}), 200
     return jsonify({"status": "denied"}), 401
 
+
 @app.route('/api/check-auth', methods=['POST'])
 def check_auth():
     if session.get('logged_in'):
@@ -65,9 +76,10 @@ def check_auth():
         }), 200
     return jsonify({"authenticated": False}), 200
 
+
 @app.route('/api/logout', methods=['POST'])
 def api_logout():
-    if session.get('logged_in'):  
+    if session.get('logged_in'):
         session.clear()
         return jsonify({"status": "logged_out"}), 200
     return jsonify({"status": "not_logged_in"}), 400
