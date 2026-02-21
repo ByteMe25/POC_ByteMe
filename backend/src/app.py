@@ -2,6 +2,7 @@ import os
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 from auth import registra_utente, login_utente
+from document import salva_nuovo_documento
 from db.db import execute_query
 from db.db import init_db
 
@@ -43,6 +44,28 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey") # Sempre divers
 with app.app_context():
     init_db()
 
+
+# ----------------------------------------------------------------
+# ENDPOINT SALVATAGGIO DOCUMENTI
+# ----------------------------------------------------------------
+@app.route('/api/save-document', methods=['POST'])
+def api_save_document():
+    # Verifica sessione
+    if not session.get('logged_in'):
+        return jsonify({"status": "error", "message": "Effettua il login per salvare"}), 401
+
+    data = request.json
+    titolo = data.get('nome')
+    contenuto = data.get('contenuto')
+    email = session.get('email')
+
+    if not titolo or not contenuto:
+        return jsonify({"status": "error", "message": "Dati incompleti"}), 400
+
+    if salva_nuovo_documento(email, titolo, contenuto):
+        return jsonify({"status": "success", "message": "Documento salvato"}), 201
+    else:
+        return jsonify({"status": "error", "message": "Errore interno del server"}), 500
 
 # ----------------------------------------------------------------
 # ENDPOINT AUTENTICAZIONE — logica identica alla versione originale

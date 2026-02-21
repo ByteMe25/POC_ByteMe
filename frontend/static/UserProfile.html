@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilo Utente - POC</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="stylesheet" href="style.css">
+    </head>
+<body>
+<div class="login-page"> <div class="login-box profile-box"> <h1 id="title-login">Area Profilo</h1>
+        <hr class="profile-divider">
+        <div class="files-section">
+            <h3><i class="fa fa-folder-open"></i> I tuoi Documenti</h3>
+            <div id="user-files-list" class="files-container">
+        
+            </div>
+        </div>
+        <div class="profile-actions">
+            <a href="index.html" class="torna-editor"> Torna all'Editor </a>
+            <button class="logout-btn-profile" onclick="logoutUtente()">
+                <i class="fa fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script src="profile.js"></script> 
+</body>
+</html>

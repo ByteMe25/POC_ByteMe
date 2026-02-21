@@ -639,7 +639,7 @@ async function testConnection() {
 }
 
 // SCARICA FILE
-function downloadFile() {
+async function downloadFile() {
     closeSidePanel(); //chiude pannello laterale
 
     var testo = easyMDE.value();
@@ -659,7 +659,44 @@ function downloadFile() {
     URL.revokeObjectURL(url);
     
     notify("File salvato: " + titolo + ".md");
+    const isLogged = document.getElementById('user-email').style.display !== 'none';
+    
+    if (isLogged) {
+        await saveToDatabase(titolo, testo);
+    } else {
+        notify("Loggati per salvare anche nel tuo profilo!", "info");
+    }
 }
+
+//salva nel db il documento
+async function saveToDatabase(titolo, contenuto) {
+    try {
+        const response = await fetch(`${API_URL}/save-document`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                nome: titolo,
+                contenuto: contenuto
+            }),
+            credentials: "include" // Importante per la sessione utente
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            notify("☁️ Sincronizzato nel profilo!");
+        } else {
+            console.error("Errore DB:", data.error);
+            notify("Errore sincronizzazione cloud", "error");
+        }
+    } catch (error) {
+        console.error("Errore di connessione:", error);
+        notify("Impossibile connettersi al database", "error");
+    }
+}
+
 
 // CARICA FILE (Trigger Input nascosto)
 function triggerUpload() {
