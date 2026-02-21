@@ -39,9 +39,30 @@ def recupera_documenti_utente(email):
     """Recupera tutti i documenti di un utente specifico."""
     try:
         with get_db_session() as session:
-            # Esempio di come potresti fare la query in futuro per la pagina profilo
-            documenti = session.query(Documento).filter_by(mail_utente=email).all()
-            return documenti
+            
+            documenti = session.query(Documento.nome).filter_by(mail_utente=email).all()
+            return [doc.nome for doc in documenti]
     except Exception as e:
         print(f"❌ Errore recupero documenti: {e}")
         return []
+    
+
+def apri_documento(email, titolo):
+    """Recupera il contenuto di un documento specifico per un utente."""
+    try:
+        with get_db_session() as session:
+            doc = session.query(Documento).filter_by(
+                mail_utente=email, 
+                nome=titolo
+            ).first()
+            if doc:
+                return {
+                    "nome": doc.nome,
+                    "contenuto": doc.contenuto_documento
+                }
+            else:
+                print(f"⚠️ Documento '{titolo}' non trovato per {email}")
+                return None
+    except Exception as e:
+        print(f"❌ Errore apertura documento: {e}")
+        return None

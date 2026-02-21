@@ -2,8 +2,8 @@ import os
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 from auth import registra_utente, login_utente
-from document import salva_nuovo_documento
-from db.db import execute_query
+from document import apri_documento, recupera_documenti_utente, salva_nuovo_documento
+from db.db import execute_query, get_db_session
 from db.db import init_db
 
 # CONFIGURAZIONE OPENAI (LLM)
@@ -66,6 +66,40 @@ def api_save_document():
         return jsonify({"status": "success", "message": "Documento salvato"}), 201
     else:
         return jsonify({"status": "error", "message": "Errore interno del server"}), 500
+
+# ----------------------------------------------------------------
+# ENDPOINT CARICAMENTO DOCUMENTI
+# ----------------------------------------------------------------
+@app.route('/api/load-documents', methods=['GET'])
+def api_load_documents():
+    # Verifica sessione
+    if not session.get('logged_in'):
+        return jsonify({"status": "error", "message": "Effettua il login per visualizzare i documenti"}), 401
+
+    email = session.get('email')
+    documentNames = []
+
+    
+    documentNames = recupera_documenti_utente(email)
+    if(documentNames is not None):
+        return jsonify({"status": "success", "documentList": documentNames})
+    else:
+        return jsonify({"status": "error", "message": "Errore interno del server"}), 500
+    
+@app.route('/api/open-document', methods=['POST'])
+def api_open_document():
+    # Verifica sessione
+    if not session.get('logged_in'):
+        return jsonify({"status": "error", "message": "Effettua il login per visualizzare i documenti"}), 401
+    docName = request.json.get('nome')
+    email = session.get('email')
+    documentObj = apri_documento(email, docName)
+    if(documentObj):
+        return jsonify({"status": "success", "document": documentObj}), 200
+    else:        
+        return jsonify({"status": "error", "message": "Documento non trovato"}), 404
+
+
 
 # ----------------------------------------------------------------
 # ENDPOINT AUTENTICAZIONE — logica identica alla versione originale

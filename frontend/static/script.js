@@ -811,3 +811,15 @@ async function checkAuthStatus() {
 
 addEventListener('DOMContentLoaded', checkAuthStatus);
 
+async function apriDocumento() {
+    const docToOpen = localStorage.getItem("openedDocument");
+    if (docToOpen) {
+        const doc = JSON.parse(docToOpen);
+        easyMDE.value(doc.contenuto);
+        document.getElementById('doc-title').value = doc.nome.replace(/\.[^/.]+$/, "");
+        localStorage.removeItem("openedDocument"); 
+    }
+    else{ }
+}
+
+addEventListener('DOMContentLoaded', apriDocumento);
