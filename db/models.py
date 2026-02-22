@@ -15,7 +15,6 @@ class Utente(Base):
     mail = Column("mail", String(255), primary_key=True)
     password = Column("password", String(255), nullable=False)
 
-    # Relazioni (cascade rispecchia ON DELETE CASCADE del tuo schema)
     documenti = relationship("Documento", back_populates="utente", cascade="all, delete-orphan")
     generazioni = relationship("GenerazioneAI", back_populates="utente")
     storici = relationship("StoricoAI", back_populates="utente")
@@ -43,6 +42,7 @@ class Documento(Base):
     mail_utente = Column("mail_utente", String(255), ForeignKey("utente.mail", ondelete="CASCADE"))
 
     utente = relationship("Utente", back_populates="documenti")
+    #Uno storico può essere legato a un documento, quindi qui usiamo il plurale
     storici = relationship("StoricoAI", back_populates="documento", cascade="all, delete-orphan")
 
 
@@ -55,10 +55,13 @@ class GenerazioneAI(Base):
     data_ora_generazione = Column("data_ora_generazione_ai", TIMESTAMP, server_default=func.now())
     id_agente_esterno = Column("id_agente_esterno", Integer, ForeignKey("agente_esterno.id_agente_esterno"))
     mail_utente = Column("mail_utente", String(255), ForeignKey("utente.mail"))
+    id_storicoai = Column("id_storicoai", Integer, ForeignKey("storico_ai.id_storico"))
 
     agente = relationship("AgenteEsterno", back_populates="generazioni")
     utente = relationship("Utente", back_populates="generazioni")
-    storici = relationship("StoricoAI", back_populates="generazione")
+    
+    #'Storico' (singolare) perché punta a UN solo ID.
+    storico = relationship("StoricoAI", back_populates="generazioni")
 
 
 class StoricoAI(Base):
@@ -68,9 +71,9 @@ class StoricoAI(Base):
     data_ora_creazione_storico = Column("data_ora_creazione_storico", TIMESTAMP, server_default=func.now())
     data_ora_ultima_modifica_storico = Column("data_ora_ultima_modifica_storico", TIMESTAMP, server_default=func.now(), onupdate=func.now())
     id_documento = Column("id_documento", Integer, ForeignKey("documento.id_documento", ondelete="CASCADE"))
-    id_generazione = Column("id_generazione", Integer, ForeignKey("generazione_ai.id_generazione"))
     mail_utente = Column("mail_utente", String(255), ForeignKey("utente.mail"))
 
     documento = relationship("Documento", back_populates="storici")
-    generazione = relationship("GenerazioneAI", back_populates="storici")
     utente = relationship("Utente", back_populates="storici")
+    
+    generazioni = relationship("GenerazioneAI", back_populates="storico")

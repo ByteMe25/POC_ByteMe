@@ -31,8 +31,10 @@ CREATE TABLE GENERAZIONE_AI (
     Data_ora_generazione_AI TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ID_agente_esterno INT,
     Mail_utente VARCHAR(255),
+    ID_storicoai SERIAL,
     FOREIGN KEY (ID_agente_esterno) REFERENCES AGENTE_ESTERNO(ID_agente_esterno),
     FOREIGN KEY (Mail_utente) REFERENCES UTENTE(Mail)
+    FOREIGN KEY (ID_storicoai) REFERENCES STORICO_AI(ID_storico)
 );
 
 -- 5. Tabella STORICO_AI
@@ -41,9 +43,7 @@ CREATE TABLE STORICO_AI (
     Data_ora_creazione_storico TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     Data_ora_ultima_modifica_storico TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ID_documento INT,
-    ID_generazione INT,
     Mail_utente VARCHAR(255),
     FOREIGN KEY (ID_documento) REFERENCES DOCUMENTO(ID_documento) ON DELETE CASCADE, --Se l'utente cancella un documento specifico, cancella anche lo storico delle modifiche AI legate a quel documento
-    FOREIGN KEY (ID_generazione) REFERENCES GENERAZIONE_AI(ID_generazione),
     FOREIGN KEY (Mail_utente) REFERENCES UTENTE(Mail)
 );
