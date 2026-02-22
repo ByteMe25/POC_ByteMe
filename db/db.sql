@@ -27,7 +27,7 @@ CREATE TABLE DOCUMENTO (
 CREATE TABLE GENERAZIONE_AI (
     ID_generazione SERIAL PRIMARY KEY,
     Prompt TEXT,
-    Contenuto_storico TEXT,
+    Risposta TEXT,
     Data_ora_generazione_AI TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ID_agente_esterno INT,
     Mail_utente VARCHAR(255),

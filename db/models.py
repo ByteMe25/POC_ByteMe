@@ -51,7 +51,7 @@ class GenerazioneAI(Base):
 
     id_generazione = Column("id_generazione", Integer, primary_key=True, autoincrement=True)
     prompt = Column("prompt", Text)
-    contenuto_storico = Column("contenuto_storico", Text)
+    risposta = Column("risposta", Text)
     data_ora_generazione = Column("data_ora_generazione_ai", TIMESTAMP, server_default=func.now())
     id_agente_esterno = Column("id_agente_esterno", Integer, ForeignKey("agente_esterno.id_agente_esterno"))
     mail_utente = Column("mail_utente", String(255), ForeignKey("utente.mail"))
