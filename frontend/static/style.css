@@ -564,6 +564,9 @@ html, body {
     line-height: 1.6;
     color: var(--col-primary); 
     background-color: #ffffff; 
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
 }
 
 /*stati*/
@@ -636,6 +639,14 @@ html, body {
 
 .ai-mode-blue .ai-widget-content {
     background-color: #9bbde9;
+}
+
+/* TEXTAREA PER DISTANT WRITING */
+
+.ai-textarea{
+    width: 100%;
+    min-height: 150px;
+    border: none;
 }
 
 /* =========================================

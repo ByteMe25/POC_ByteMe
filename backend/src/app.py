@@ -6,8 +6,10 @@ from document import apri_documento, recupera_documenti_utente, salva_nuovo_docu
 from db.db import execute_query, get_db_session
 from db.db import init_db
 
-# CONFIGURAZIONE OPENAI (LLM)
+# Test GEMINI
 try:
+    '''
+    # CONFIGURAZIONE OPENAI (LLM)
     from openai import OpenAI
     
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
@@ -27,10 +29,16 @@ try:
     print(f"🤖 Modello: {ZUCCHETTI_MODEL}")
     print(f"✅ Client: {'Attivo' if ai_client else '❌ Non configurato'}")
     print("=" * 60)
-    
+    '''
+    # Test GEMINI
+    from google import genai
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+    client = genai.Client(api_key = GEMINI_API_KEY) if GEMINI_API_KEY else None
 except ImportError:
-    ai_client = None
-    print("⚠️ Libreria 'openai' non installata. Endpoint AI non disponibile.")
+    #ai_client = None
+    #print("⚠️ Libreria 'openai' non installata. Endpoint AI non disponibile.")
+    client = None
+    print("⚠️ Libreria 'gemini' non installata. Endpoint AI non disponibile.")
 
 
 app = Flask(__name__)
@@ -148,7 +156,8 @@ def generate_ai_text():
     
     print(f"📨 Richiesta AI ricevuta")
     
-    if not ai_client:
+    #if not ai_client:
+    if not client:
         return jsonify({
             "generated_text": "❌ Client Zucchetti non configurato. Controlla le variabili d'ambiente."
         }), 500
@@ -168,22 +177,38 @@ def generate_ai_text():
         # Costruisci il prompt in base all'operazione
         system_prompt, user_prompt = build_prompt(operation, text)
         
-        messages = [
+        # prompt per Gemini
+        full_prompt = f"{system_prompt}\n\n{user_prompt}"
+
+        #Prompt per Zucchetti
+        '''messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
-        ]
-        
-        print(f"🤖 Invio a {ZUCCHETTI_MODEL}...")
+        ]'''
         
         # Chiamata all'API Zucchetti
+        '''
         response = ai_client.chat.completions.create(
             model=ZUCCHETTI_MODEL,
             messages=messages,
             temperature=0.7,
             max_tokens=500
-        )
-        
+
+        print(f"🤖 Invio a Gemini...")
+
+        # Gestione risposta con api Zucchetti
         result = response.choices[0].message.content
+        '''
+
+        # Chiamata all'api Gemini
+        response = client.models.generate_content(
+            model = "gemini-3-flash-preview",
+            contents = full_prompt
+        )
+
+        # Gestione risposta con Gemini
+        result = response.text
+        
         #per rimuovere frasi introduttive che AI mette di default:
         result = clean_ai_response(result)
 
@@ -194,7 +219,8 @@ def generate_ai_text():
     except Exception as e:
         print(f"❌ Errore dettagliato: {e}")
         return jsonify({
-            "generated_text": f"❌ Errore API Zucchetti:\n\n{str(e)[:300]}\n\nConfigurazione:\n• Modello: {ZUCCHETTI_MODEL}\n• Endpoint: {OPENAI_BASE_URL}\n• Operazione: {operation}"
+            "generated_text": f"❌ Errore API Gemini:\n\n{str(e)[:300]}\n\nConfigurazione:\n• Modello: Gemini\n• Endpoint: \n• Operazione: {operation}"
+            #"generated_text": f"❌ Errore API Zucchetti:\n\n{str(e)[:300]}\n\nConfigurazione:\n• {ZUCCHETTI_MODEL}\n• Endpoint: {OPENAI_BASE_URL}\n• Operazione: {operation}"
         }), 500
 
 # funzione per rimuovere frasi introduttive AI
@@ -332,9 +358,14 @@ def test_db():
 def root():
     return jsonify({
         "service": "POC ByteMe Backend",
+        ''' Info api Zucchetti
         "ai_configured": bool(ai_client),
         "model": ZUCCHETTI_MODEL if ai_client else None,
         "base_url": OPENAI_BASE_URL if ai_client else None
+        '''
+        #info api Gemini
+        "ai_configured": bool(client),
+        "model": "gemini-3-flash-preview" if client else None,
     })
 
 

@@ -227,10 +227,12 @@ let activeWidget = null;
 let activeWidgetElement = null;
 let currentOperation = "";
 let currentTextContext = "";
+let dw_outer_context = "";
+let dw_user_prompt = "";
 let generationHistory = []; //storico di tutte le generazioni
 
 // Funzione principale chiamata dai bottoni della Sidebar
-async function callAI(operation) {
+async function callAI(operation, isDW = false) {
     //se è nella sezione dello storico non si possono usare funzioni AI
     const historyView = document.getElementById('history-view');
     if (historyView && historyView.classList.contains('active')) {
@@ -249,8 +251,14 @@ async function callAI(operation) {
     //se non seleziona nulla, prende tutto
     if (!text) text = easyMDE.value(); 
 
-    if (!text || text.trim() === "") {
-        notify("L'editor è vuoto! Scrivi qualcosa prima.", "error");
+    if(!isDW){
+        if (!text || text.trim() === "") {
+            notify("L'editor è vuoto! Scrivi qualcosa prima.", "error");
+            return;
+        }
+    } else {
+        notify("Starting Distant Writing");
+        startDW(operation, text);
         return;
     }
 
@@ -282,11 +290,68 @@ async function performApiCall(text, operation) {
     }
 }
 
+async function startDW(operation, text, prompt = ""){
+    const textareaHTML = `
+        <textarea 
+            id="ai-user-input"
+            class="ai-textarea"
+            placeholder="Scrivi qui..."
+        >${prompt}</textarea>
+    `;
+
+    createWidgetUI(operation, text, false, null, textareaHTML);
+}
+
+async function send_DW_Request(operation, text = null){
+    const request = document.getElementById("ai-user-input").value;
+
+    let promptToSend;
+
+    const div = document.querySelector('#ai-widget-body');
+    const loading = document.createElement('div');
+
+    loading.textContent = 'Caricamento in corso...';
+    loading.style.width = '100%';
+
+    div.appendChild(loading);
+
+    if(text) 
+    {
+        dw_outer_context = text;
+        context = "Dato questo contesto:\n" + text;
+        promptToSend = context + "\n" + request;
+    }else promptToSend = request;    
+        
+    currentOperation = operation;
+    currentTextContext = promptToSend;
+    dw_user_prompt = request;
+
+    try {
+        const response = await fetch("http://localhost:8000/api/ai/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: promptToSend, operation: operation })
+        });
+
+        const data = await response.json();
+        updateWidgetContent(data.generated_text);
+        document.querySelector('#regen_btn').removeAttribute('style');
+        document.querySelector('#prompt_btn').removeAttribute('style');
+        document.querySelector("#confirm_DW").onclick = () => {
+            confirmAiInsert();
+        };
+        
+    } catch (err) {
+        console.error(err);
+        updateWidgetContent("Errore: Impossibile contattare l'IA.");
+        notify("Errore generazione", "error");
+    }
+}
 
 /* =========================================
    INTERFACCIA WIDGET (DOM)
    ========================================= */
-function createWidgetUI (operation, initialText, isLoading = false, cursorPosition = null){
+function createWidgetUI (operation, initialText, isLoading = false, cursorPosition = null, customBody = null){
     const cm = easyMDE.codemirror;
     const now = new Date();
     const timeString = now.toLocaleDateString('it-IT') + ' ' + now.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'});
@@ -327,6 +392,41 @@ function createWidgetUI (operation, initialText, isLoading = false, cursorPositi
         container.classList.add(`ai-mode-${colorMode}`);
     }
 
+    let widget_actions;
+
+    if(!customBody){
+        widget_actions = `
+            <div class="ai-widget-actions">
+                <button class="action-btn btn-delete" onclick="removeAiWidget()">
+                    <i class="fa fa-trash"></i> Elimina
+                </button>
+                <button class="action-btn" onclick="regenerateAi()">
+                    Rigenera ↻
+                </button>
+                <button class="action-btn" onclick="confirmAiInsert()">
+                    Conferma ✅
+                </button>
+            </div>
+        `;
+    } else {
+        widget_actions = `
+            <div class="ai-widget-actions">
+                <button id="prompt_btn" class="action-btn" style="display: none;" onclick="modifyPrompt()">
+                    Modifica Prompt
+                </button>
+                <button class="action-btn btn-delete" onclick="removeAiWidget()">
+                    <i class="fa fa-trash"></i> Elimina
+                </button>
+                <button id="regen_btn" class="action-btn" style="display:none;" onclick="regenerateAi()">
+                    Rigenera ↻
+                </button>
+                <button class="action-btn" id="confirm_DW">
+                    Conferma ✅
+                </button>
+            </div>
+        `;
+    }
+    
     // HTML Interno
     container.innerHTML = `
         <div class="ai-widget-header">
@@ -335,21 +435,16 @@ function createWidgetUI (operation, initialText, isLoading = false, cursorPositi
         </div>
         
         <div id="ai-widget-body" class="ai-widget-content ${isLoading ? 'ai-loading' : ''}">
-            ${initialText}
+            ${customBody || initialText}
         </div>
-        
-        <div class="ai-widget-actions">
-            <button class="action-btn btn-delete" onclick="removeAiWidget()">
-                <i class="fa fa-trash"></i> Elimina
-            </button>
-            <button class="action-btn" onclick="regenerateAi()">
-                Rigenera ↻
-            </button>
-            <button class="action-btn" onclick="confirmAiInsert()">
-                Conferma ✅
-            </button>
-        </div>
-    `;
+    ` + widget_actions;
+
+    if (customBody) {
+        // Invio dei dati per effettuare la chiamata con Distant Writing
+        container.querySelector("#confirm_DW").onclick = () => {
+            send_DW_Request(operation, initialText);
+        };
+    }
 
     activeWidgetElement = container;
 
@@ -444,6 +539,10 @@ function confirmAiInsert() {
     notify("✅ Contenuto inserito correttamente!");
 }
 
+function modifyPrompt(){
+    removeAiWidget();
+    startDW(currentOperation,dw_outer_context,dw_user_prompt);
+}
 
 /* =========================================
    FILE SYSTEM & DB (Salvataggio, Caricamento, Test)

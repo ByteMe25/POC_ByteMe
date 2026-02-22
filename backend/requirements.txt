@@ -8,3 +8,4 @@ flask-cors
 openai
 pydantic
 python-dotenv
+google-genai
