@@ -31,9 +31,9 @@ CREATE TABLE GENERAZIONE_AI (
     Data_ora_generazione_AI TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ID_agente_esterno INT,
     Mail_utente VARCHAR(255),
-    ID_storicoai SERIAL,
+    ID_storicoai INT,
     FOREIGN KEY (ID_agente_esterno) REFERENCES AGENTE_ESTERNO(ID_agente_esterno),
-    FOREIGN KEY (Mail_utente) REFERENCES UTENTE(Mail)
+    FOREIGN KEY (Mail_utente) REFERENCES UTENTE(Mail),
     FOREIGN KEY (ID_storicoai) REFERENCES STORICO_AI(ID_storico)
 );
 
