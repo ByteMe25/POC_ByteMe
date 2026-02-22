@@ -2,7 +2,8 @@ import os
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 from auth import registra_utente, login_utente
-from db.db import execute_query
+from document import apri_documento, recupera_documenti_utente, salva_nuovo_documento
+from db.db import execute_query, get_db_session
 from db.db import init_db
 
 # CONFIGURAZIONE OPENAI (LLM)
@@ -42,6 +43,62 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey") # Sempre divers
 # Crea le tabelle al primo avvio (utile in sviluppo; in prod usa Alembic)
 with app.app_context():
     init_db()
+
+
+# ----------------------------------------------------------------
+# ENDPOINT SALVATAGGIO DOCUMENTI
+# ----------------------------------------------------------------
+@app.route('/api/save-document', methods=['POST'])
+def api_save_document():
+    # Verifica sessione
+    if not session.get('logged_in'):
+        return jsonify({"status": "error", "message": "Effettua il login per salvare"}), 401
+
+    data = request.json
+    titolo = data.get('nome')
+    contenuto = data.get('contenuto')
+    email = session.get('email')
+
+    if not titolo or not contenuto:
+        return jsonify({"status": "error", "message": "Dati incompleti"}), 400
+
+    if salva_nuovo_documento(email, titolo, contenuto):
+        return jsonify({"status": "success", "message": "Documento salvato"}), 201
+    else:
+        return jsonify({"status": "error", "message": "Errore interno del server"}), 500
+
+# ----------------------------------------------------------------
+# ENDPOINT CARICAMENTO DOCUMENTI
+# ----------------------------------------------------------------
+@app.route('/api/load-documents', methods=['GET'])
+def api_load_documents():
+    # Verifica sessione
+    if not session.get('logged_in'):
+        return jsonify({"status": "error", "message": "Effettua il login per visualizzare i documenti"}), 401
+
+    email = session.get('email')
+    documentNames = []
+
+    
+    documentNames = recupera_documenti_utente(email)
+    if(documentNames is not None):
+        return jsonify({"status": "success", "documentList": documentNames})
+    else:
+        return jsonify({"status": "error", "message": "Errore interno del server"}), 500
+    
+@app.route('/api/open-document', methods=['POST'])
+def api_open_document():
+    # Verifica sessione
+    if not session.get('logged_in'):
+        return jsonify({"status": "error", "message": "Effettua il login per visualizzare i documenti"}), 401
+    docName = request.json.get('nome')
+    email = session.get('email')
+    documentObj = apri_documento(email, docName)
+    if(documentObj):
+        return jsonify({"status": "success", "document": documentObj}), 200
+    else:        
+        return jsonify({"status": "error", "message": "Documento non trovato"}), 404
+
 
 
 # ----------------------------------------------------------------
