@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 from auth import registra_utente, login_utente
-from document import apri_documento, recupera_documenti_utente, salva_nuovo_documento
+from document import apri_documento, crea_storico, recupera_documenti_utente, salva_generazioneAI, salva_nuovo_documento
 from db.db import execute_query, get_db_session
 from db.db import init_db
 
@@ -148,6 +148,48 @@ def api_logout():
         session.clear()
         return jsonify({"status": "logged_out"}), 200
     return jsonify({"status": "not_logged_in"}), 400
+
+@app.route('/api/create-storico', methods=['POST'])
+def api_create_storico():
+    # Verifica sessione
+    if not session.get('logged_in'):
+        return jsonify({"status": "error", "message": "Effettua il login per creare lo storico"}), 401
+    
+    data = request.json
+    email = session.get('email')
+    docName = data.get('nomeDocumento')
+
+    if not docName:
+        return jsonify({"status": "error", "message": "IDDocumento mancante"}), 400
+
+    if crea_storico(email, docName):
+        return jsonify({"status": "success", "message": "Storico creato"}), 201
+    else:
+        return jsonify({"status": "error", "message": "Errore interno del server"}), 500
+
+@app.route('/api/save-ai-generation', methods=['POST'])
+def api_save_ai_generation():
+    # Verifica sessione
+    if not session.get('logged_in'):
+        return jsonify({"status": "error", "message": "Effettua il login per salvare la generazione AI"}), 401
+
+    data = request.json
+    email = session.get('email')
+    docName = data.get('nomeDocumento')
+    prompt = data.get('prompt')
+    risposta = data.get('risposta')
+    
+
+    if not all([docName, prompt, risposta, docName]):
+        return jsonify({"status": "error", "message": "Dati mancanti"}), 400
+
+    if salva_generazioneAI(prompt, risposta, docName, email):
+        return jsonify({"status": "success", "message": "Generazione AI salvata"}), 201
+    else:
+        return jsonify({"status": "error", "message": "Errore interno del server"}), 500
+    
+
+
 
 # ENDPOINT AI
 @app.route('/api/ai/generate', methods=['POST'])

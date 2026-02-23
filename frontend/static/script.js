@@ -1,6 +1,9 @@
 /* =========================================
    CONFIGURAZIONE EDITOR E NOTIFICHE
    ========================================= */
+
+const API_URL = "http://localhost:8000/api";
+
 // Funzione Helper per Notifiche (toastify)
 const notify = (msg, type = "info") => {
     let cssClass = type === "error" ? "toast-error" : "toast-success"; 
@@ -548,6 +551,33 @@ function modifyPrompt(){
    FILE SYSTEM & DB (Salvataggio, Caricamento, Test)
    ========================================= */
 // GESTIONE STORIA GENERAZIONI
+async function saveGenerationToDB(operation, generated_text){
+    //se utente loggato, aggiunge al db dello storico
+    try {
+        const response = await fetch(`${API_URL}/save-ai-generation`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                nomeDocumento: document.getElementById('doc-title').value,
+                prompt: operation,
+                risposta: generated_text
+                
+            }),
+            credentials: "include"
+        });
+        
+
+        const data = await response.json();
+        if (response.ok) {
+            notify("Generazione salvata nello storico personale!");
+        } else {
+            notify("Errore durante il salvataggio della generazione", "error");
+        }
+    } catch (error) {
+        notify("Errore durante il salvataggio della generazione", "error");
+    }
+}
+
 function saveToHistory(operation, generatedText) {
     const now = new Date();
     const timeString = now.toLocaleDateString('it-IT') + ' ' + now.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit', second: '2-digit'});
@@ -587,6 +617,8 @@ function saveToHistory(operation, generatedText) {
     } catch (e) {
         console.warn("Impossibile salvare la storia in localStorage:", e);
     }
+
+    saveGenerationToDB(opName, generatedText);
 }
 
 function loadHistoryFromStorage() {
@@ -680,7 +712,7 @@ function copyHistoryItem(itemId) {
             console.error(e);
         });
 }
-
+ 
 function deleteHistoryItem(itemId) {
     // Trova l'indice dell'elemento
     const index = generationHistory.findIndex(h => h.id === itemId);
@@ -699,7 +731,7 @@ function deleteHistoryItem(itemId) {
     } catch (e) {
         console.warn("Impossibile aggiornare localStorage:", e);
     }
-    
+
     // Animazione di rimozione della card
     const card = document.querySelector(`.history-item[data-id="${itemId}"]`);
     if (card) {
@@ -794,6 +826,31 @@ async function saveToDatabase(titolo, contenuto) {
         console.error("Errore di connessione:", error);
         notify("Impossibile connettersi al database", "error");
     }
+
+    try {
+        const response = await fetch(`${API_URL}/create-storico`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                nomeDocumento: document.getElementById('doc-title').value
+            }),
+            credentials: "include"
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            notify("📁 Storico creato nel db!");
+        } else {
+            console.error("Errore DB:", data.error);
+            notify("Errore creazione storico", "error");
+        }
+    } catch (error) {
+        console.error("Errore di connessione:", error);
+        notify("Impossibile connettersi al database", "error");
+    }
 }
 
 
@@ -838,7 +895,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // GESTIONE VISTE PER UTENTI LOGGATI E NON
-const API_URL = "http://localhost:8000/api";
+
 
 // --- FUNZIONE LOGOUT ---
 async function logoutUtente() {
@@ -922,3 +979,5 @@ async function apriDocumento() {
 }
 
 addEventListener('DOMContentLoaded', apriDocumento);
+
+
