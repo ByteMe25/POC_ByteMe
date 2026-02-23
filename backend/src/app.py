@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 from auth import registra_utente, login_utente
-from document import apri_documento, crea_storico, recupera_documenti_utente, salva_generazioneAI, salva_nuovo_documento
+from document import apri_documento, crea_storico, get_generazioni_per_storico, recupera_documenti_utente, salva_generazioneAI, salva_nuovo_documento
 from db.db import execute_query, get_db_session
 from db.db import init_db
 
@@ -188,6 +188,24 @@ def api_save_ai_generation():
     else:
         return jsonify({"status": "error", "message": "Errore interno del server"}), 500
     
+@app.route('/api/load-storico', methods=['POST'])
+def api_load_storico():
+    # Verifica sessione
+    if not session.get('logged_in'):
+        return jsonify({"status": "error", "message": "Effettua il login per caricare lo storico"}), 401
+
+    data = request.json
+    email = session.get('email')
+    docName = data.get('nomeDocumento')
+
+    if not docName:
+        return jsonify({"status": "error", "message": "Nome documento mancante"}), 400
+
+    if get_generazioni_per_storico(docName, email) is not None:
+        generazioni = get_generazioni_per_storico(docName, email)
+        return jsonify({"status": "success", "generazioni": generazioni}), 200
+    else:
+        return jsonify({"status": "error", "message": "Errore interno del server"}), 500 
 
 
 

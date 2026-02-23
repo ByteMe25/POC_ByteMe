@@ -135,3 +135,28 @@ def elimina_generazioneAI(id_generazione):
     except Exception as e:
         print(f"❌ Errore eliminazione generazione AI: {e}")
         return False
+    
+def get_generazioni_per_storico(nomeDoc, email):
+    try:
+        with get_db_session() as session:
+            doc = session.query(Documento).filter_by(mail_utente=email, nome=nomeDoc).first()
+            if not doc:
+                print(f"❌ Documento '{nomeDoc}' non trovato")
+                return []
+            
+            storico = session.query(StoricoAI).filter_by(id_documento=doc.id_documento).first()
+            if not storico:
+                print(f"❌ Storico per documento '{nomeDoc}' non trovato")
+                return []
+            
+            generazioni = session.query(GenerazioneAI).filter_by(id_storicoai=storico.id_storico).all()
+            print(f"✅ Recuperate {len(generazioni)} generazioni AI per '{nomeDoc}'")
+            return [{
+                "id_generazione": gen.id_generazione,
+                "prompt": gen.prompt,
+                "risposta": gen.risposta,
+                "data_ora": gen.data_ora_generazione
+            } for gen in generazioni]
+    except Exception as e:
+        print(f"❌ Errore recupero generazioni AI: {e}")
+        return []

@@ -858,6 +858,11 @@ async function saveToDatabase(titolo, contenuto) {
 function triggerUpload() {
     closeSidePanel(); //chiude pannello laterale
 
+    localStorage.clear('ai_generation_history');
+    generationHistory = [];
+    renderHistory();
+
+
     const fileInput = document.getElementById('file-input');
     if(fileInput) {
         fileInput.click();
@@ -974,6 +979,53 @@ async function apriDocumento() {
         easyMDE.value(doc.contenuto);
         document.getElementById('doc-title').value = doc.nome.replace(/\.[^/.]+$/, "");
         localStorage.removeItem("openedDocument"); 
+        localStorage.clear('ai_generation_history');
+        try {
+            const response = await fetch(`${API_URL}/load-storico`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    nomeDocumento: document.getElementById('doc-title').value
+                }),
+                credentials: "include"
+            });
+            const data = await response.json();
+            if (response.ok) {
+                
+                generationHistory = [];
+                generationHistory = data.generazioni.map(gen => {
+                    const date = new Date(gen.data_ora);
+                    return {
+                        id: gen.id_generazione,
+                        operation: gen.prompt,      
+                        operationName: gen.prompt, 
+                        text: gen.risposta,
+                        timestamp: date.toISOString(),
+                        displayTime: date.toLocaleDateString('it-IT') + ' ' + date.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit', second: '2-digit'})
+                    };
+                }).reverse(); 
+                generationHistory.forEach(item => {
+                item.operationName = getOperationName(item.operation);
+                });
+                try {
+                    localStorage.setItem('ai_generation_history', JSON.stringify(generationHistory));
+                } 
+                catch (e) {
+                console.warn("Impossibile salvare la storia in localStorage:", e);
+                }
+                
+            }
+            else {
+                console.error("Errore nel caricamento delle generazioni:", data.message);
+            }
+        } 
+        catch (error) {
+            console.error("Errore di connessione:", error);
+        }
+        console.log("Documento caricato:", doc.nome);
+        renderHistory();
     }
     else{ }
 }
@@ -981,3 +1033,16 @@ async function apriDocumento() {
 addEventListener('DOMContentLoaded', apriDocumento);
 
 
+function getOperationName(operation) {
+    if (operation === 'summary') return "Riassunto";
+    if (operation === 'distant_writing') return "Distant Writing";
+    if (operation === 'fix_grammar') return "Correzione Grammaticale";
+    if (operation === 'rewrite') return "Riscrittura";
+    if (operation === 'chart') return "Grafico";
+    if (operation.includes('hat')) {
+        const colorMap = { 'white': 'Bianco', 'red': 'Rosso', 'black': 'Nero', 'yellow': 'Giallo', 'green': 'Verde', 'blue': 'Blu' };
+        return "Cappello " + (colorMap[operation.split('_')[0]] || operation.split('_')[0].toUpperCase());
+    }
+    if (operation.includes('translate')) return "Traduzione " + operation.split('_')[1].toUpperCase();
+    return "AI Assistant";
+}
