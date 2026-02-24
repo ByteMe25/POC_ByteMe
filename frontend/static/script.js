@@ -32,12 +32,25 @@ const easyMDE = new EasyMDE({
         "bold", "italic",
         {
             name: "underline",
-            action: function(editor){
-                var cm = editor.codemirror;
-                var selectedText = cm.getSelection();
-                var text = selectedText || "testo"; 
-                cm.replaceSelection("<u>" + text + "</u>");
-            },
+            action: function(editor) {
+            var cm = editor.codemirror;
+            var selection = cm.getSelection();
+            if (!selection) {
+                cm.replaceSelection("<u>testo</u>");
+                return;
+            }
+            
+            var startTag = "<u>";
+            var endTag = "</u>";
+            //qua si controlla se la selezione è gia racchiusa nei tag <u>
+            if (selection.startsWith(startTag) && selection.endsWith(endTag)) {
+                //rimuoviamo i tag
+                var unwrapped = selection.substring(startTag.length, selection.length - endTag.length);
+                cm.replaceSelection(unwrapped);
+            } else {
+                cm.replaceSelection(startTag + selection + endTag);
+            }
+    },
             className: "fa fa-underline",
             title: "Sottolineato",
         }, "|",
