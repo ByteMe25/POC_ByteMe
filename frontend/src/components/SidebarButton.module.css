@@ -1,0 +1,6 @@
+.button{
+    width: 3em;
+    height: 3em;
+    border-radius: 5px;
+    box-shadow: 0px .5px 4px white;
+}
