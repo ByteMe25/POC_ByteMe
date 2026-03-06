@@ -12,3 +12,23 @@
   font-size: 16px;
   color: white;
 }
+
+.loginLink{
+  margin-left: auto;
+  margin-right: 0px;
+  color: white;
+}
+
+.registerLink{
+  margin-left:auto;
+  color: white;
+}
+
+.logoutBtn{
+  display:none;
+}
+
+.userEmail{
+  display:none;
+  color: white;
+}

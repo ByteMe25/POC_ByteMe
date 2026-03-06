@@ -1,4 +1,10 @@
+uvicorn
+sqlalchemy
+psycopg2-binary
 flask
 flask-cors
-google-genai
+
+openai
+pydantic
 python-dotenv
+google-genai
