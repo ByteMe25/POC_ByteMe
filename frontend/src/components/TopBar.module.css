@@ -25,10 +25,10 @@
 }
 
 .logoutBtn{
-  display:none;
+  display:block;
 }
 
 .userEmail{
-  display:none;
+  display:block;
   color: white;
 }
