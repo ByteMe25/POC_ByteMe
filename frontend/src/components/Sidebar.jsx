@@ -18,7 +18,7 @@ async function callAI(text, operation) {
   if (!response.ok) throw new Error(`Errore API: ${response.status}`);
 
   const data = await response.json();
-  return data.result;
+  return data.generated_text;
 }
 
 export default function Sidebar({ getEditorText, insertText }) {
