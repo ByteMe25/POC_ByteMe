@@ -1,27 +1,26 @@
-import TopBar from "../../components/TopBar";
-import Sidebar from "../../components/Sidebar";
-import { useEditor } from "./hooks/useEditor";      
+import { Sidebar } from "@/components/Sidebar/Sidebar";
+import { EditorSidebarButtons } from "./components/EditorSidebarButtons";
+import TopBar from "@/components/Topbar/TopBar";
+import { useEditor } from "./hooks/useEditor";
 import styles from "./EditorPage.module.css";
 
 export const EditorPage = () => {
-  const { editorRef, textareaRef } = useEditor();
+  const { editorRef, textareaRef, getEditorText, insertText } = useEditor();
+
   return (
     <div className={styles.container}>
       <TopBar />
       <div className={styles.body}>
-        <Sidebar
-          getEditorText={() => editorRef.current?.value() ?? ""}
-          insertText={(text) => {
-            const cm = editorRef.current?.codemirror;
-            if (!cm) return;
-            cm.replaceRange("\n" + text, cm.getCursor());
-          }}
-        />
+        <Sidebar>
+          <EditorSidebarButtons
+            getEditorText={getEditorText}
+            insertText={insertText}
+          />
+        </Sidebar>
         <div className={styles.editor}>
           <textarea ref={textareaRef} />
         </div>
       </div>
     </div>
   );
-
-}
+};

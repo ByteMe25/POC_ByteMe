@@ -1,7 +1,7 @@
 import styles from "./TopBar.module.css";
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { useLogout } from "../features/auth/hooks/useLogout";
+import { useAuth } from "../../context/AuthContext";
+import { useLogout } from "../../features/auth/hooks/useLogout";
 
 export default function TopBar() {
   const { user } = useAuth();
