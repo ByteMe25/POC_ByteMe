@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 from auth import registra_utente, login_utente
-from document import apri_documento, crea_storico, get_generazioni_per_storico, recupera_documenti_utente, salva_generazioneAI, salva_nuovo_documento
+from document import apri_documento, crea_storico, get_generazioni_per_storico, recupera_documenti_utente, salva_generazioneAI, salva_nuovo_documento, elimina_generazioneAI
 from db.db import execute_query, get_db_session
 from db.db import init_db
 
@@ -191,12 +191,23 @@ def api_load_storico():
     if not docName:
         return jsonify({"status": "error", "message": "Nome documento mancante"}), 400
 
-    if get_generazioni_per_storico(docName, email) is not None:
-        generazioni = get_generazioni_per_storico(docName, email)
+    generazioni = get_generazioni_per_storico(docName, email)
+    if generazioni is not None:
         return jsonify({"status": "success", "generazioni": generazioni}), 200
     else:
         return jsonify({"status": "error", "message": "Errore interno del server"}), 500 
 
+
+
+@app.route('/api/delete-ai-generation/<int:id_generazione>', methods=['DELETE'])
+def api_delete_ai_generation(id_generazione):
+    if not session.get('logged_in'):
+        return jsonify({"status": "error", "message": "Effettua il login"}), 401
+
+    if elimina_generazioneAI(id_generazione):
+        return jsonify({"status": "success", "message": "Generazione eliminata"}), 200
+    else:
+        return jsonify({"status": "error", "message": "Generazione non trovata"}), 404
 
 
 # ENDPOINT AI

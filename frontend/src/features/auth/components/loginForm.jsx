@@ -22,7 +22,7 @@ export const LoginForm = () => {
             </button>
 
             <h2 className={styles['auth-title']}>Login</h2>
-            <form>
+            <form onSubmit={(e) => { e.preventDefault(); handleLogin({ email, password }); }}>
                 <label className={styles['form-label']}>Email</label>
                 <input
                     className={styles['form-input']}
@@ -42,9 +42,7 @@ export const LoginForm = () => {
                 />
 
                 <button
-                    className={styles['form-button']}
-                    onClick={() => handleLogin({ email, password })}
-                >
+                    className={styles['form-button']} type="submit">
                     Accedi
                 </button>
             </form>

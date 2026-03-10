@@ -8,7 +8,7 @@ export const registerForm = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
-    
+
     return(
         <div className={styles.container}>
             <button 
@@ -20,7 +20,7 @@ export const registerForm = () => {
             </button>
 
             <h2 className={styles['auth-title']}>Register</h2>
-            <form>
+            <form onSubmit={(e) => { e.preventDefault(); handleRegister({ email, password }); }}>
                 <label className={styles['form-label']}>Email</label>
                 <input className={styles['form-input']} type="email" 
                 placeholder="Inserisci la tua email"
@@ -35,12 +35,12 @@ export const registerForm = () => {
                 onChange={(e) => setPassword(e.target.value)} 
                 />
 
-                <button className={styles['form-button']} onClick={() => handleRegister({ email, password })}> 
+                <button className={styles['form-button']} type="submit"> 
                     Registrati 
                 </button>
             </form>
             {error && <p className={styles['error-message']}>{error}</p>}
         </div>
     );
-    
+
 }

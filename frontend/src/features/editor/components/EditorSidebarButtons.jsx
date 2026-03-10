@@ -21,6 +21,15 @@ export const EditorSidebarButtons = ({ getEditorText, insertText }) => {
           onClick={() => handleAction(btn.operation)}
         />
       ))}
+      
+      <hr style={{ border: "none", borderTop: "1px solid #333", margin: "8px 0", width: "100%" }} />
+
+      <SidebarButton
+        icon="🕒"
+        tooltip="Storico generazioni"
+        disabled={false}
+        onClick={() => navigate("/history", { state: { nomeDocumento } })}
+      />
     </>
   );
 };
