@@ -2,6 +2,9 @@ import { useEditorAI } from "../hooks/useEditorBtns";
 import SidebarButton from "@/components/Sidebar/SidebarButton";
 
 const BUTTONS = [
+  { id: "upload",    icon: "📤", tooltip: "Carica file dal PC", operation: "upload_local" },
+  { id: "save",      icon: "💾", tooltip: "Salva nel Database", operation: "save_db" },
+
   { id: "summarize", icon: "📝", tooltip: "Riassumi il testo",   operation: "summary" },
   { id: "fix",       icon: "🔧", tooltip: "Correggi grammatica", operation: "fix_grammar" },
   { id: "translate", icon: "🌍", tooltip: "Traduci in inglese",  operation: "translate_en" },
