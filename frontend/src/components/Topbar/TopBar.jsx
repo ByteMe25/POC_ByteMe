@@ -15,6 +15,7 @@ export default function TopBar() {
         <>
           <span className={styles.userEmail}>{user.email}</span>
           <button className={styles.logoutBtn} onClick={handleLogout}>Logout</button>
+          <Link to="/personal" className={styles.loginLink}>PersonalArea</Link>
         </>
       ) : (
         <>

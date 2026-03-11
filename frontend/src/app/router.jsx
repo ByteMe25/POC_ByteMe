@@ -3,6 +3,7 @@ import { HistoryPage } from "../features/history/historyPage";
 import { createBrowserRouter } from "react-router-dom";
 import { Login } from "../features/auth/login";
 import { Register } from "../features/auth/register";
+import { Personal } from "../features/personal/personal";
 
 export const router = createBrowserRouter([
   { path: "/", element: <EditorPage /> },
@@ -10,4 +11,5 @@ export const router = createBrowserRouter([
   { path: "/register", element: <Register /> },
   { path: "/editor", element: <EditorPage /> },
   { path: "/history", element: <HistoryPage /> },
+  { path: "/personal", element: <Personal /> }
 ]);
