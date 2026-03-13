@@ -34,7 +34,7 @@ export const useEditor = (docName) => {
       try {
         const docInfo = await openDocumentCall(docName);
         if (docInfo?.document?.contenuto) {
-          editorRef.current.vaue(docInfo.document.contenuto);
+          editorRef.current.value(docInfo.document.contenuto);
         }
       } catch (error) {
         console.error("Failed to load document:", error);
