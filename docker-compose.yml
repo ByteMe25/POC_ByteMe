@@ -1,9 +1,27 @@
 services:
+  db:
+    image: postgres:latest
+    container_name: poc-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: poc_db
+    ports:
+      - 5433:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./db/db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d poc_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
   backend:
     image: poc-backend
     pull_policy: never
     # evita di pullare imamagini da internet omonime per sbaglio
-
     container_name: poc-backend
     build:
       context: .
@@ -20,7 +38,9 @@ services:
       - OPENAI_BASE_URL=${OPENAI_BASE_URL}
       - PYTHONPATH=/app
       - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
-
+    depends_on:
+      db:
+        condition: service_healthy  # ← aspetta il healthcheck, non solo l'avvio
 
 
   frontend:  
@@ -40,24 +60,6 @@ services:
     depends_on:
       - backend
 
-    
-
-
-
-  db:
-    image: postgres:latest
-    container_name: poc-db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      # password esposta!!!
-
-      POSTGRES_DB: poc_db
-    ports:
-      - 5433:5432
-    volumes:
-      - postgres_data:/var/lib/postgresql
-      - ./db/db.sql:/docker-entrypoint-initdb.d/init.sql
   
 volumes:
   postgres_data:

@@ -5,13 +5,15 @@ import { useAuth } from "@/context/AuthContext";
 import { saveGenerazione } from "@/features/history/api/historyApiCall";
 
 /**
- *
+ * useEditorAI — hook della feature editor
+ * 
  * @param {object} params
  * @param {() => string} params.getEditorText
  * @param {(text: string) => void} params.insertText
- * @param {string|null} params.nomeDocumento - nome documento corrente (null se non salvato)
+ * @param {string|null} params.nomeDocumento - nome documento corrente, dal DocNameContext via EditorSidebarButtons
  */
-export const useEditorAI = ({ getEditorText, insertText }) => {
+
+export const useEditorAI = ({ getEditorText, insertText, nomeDocumento = null }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { addEntry } = useHistory();
   const { user } = useAuth();
@@ -21,7 +23,7 @@ export const useEditorAI = ({ getEditorText, insertText }) => {
     if (operation === "upload_local") {
       const input = document.createElement("input");
       input.type = "file";
-      input.accept = ".txt"; // Puoi aggiungere .doc, .pdf se il tuo editor li supporta
+      input.accept = ".txt"; // si possono aggiungere .doc, .pdf se l'editor li supporta
       
       input.onchange = (e) => {
         const file = e.target.files[0];
@@ -50,11 +52,12 @@ export const useEditorAI = ({ getEditorText, insertText }) => {
           return;
         }
 
-        const response = await fetch("http://localhost:8000/api/save-document", {
+        // URL relativo — funziona sia in Docker (nginx proxy) sia in sviluppo locale
+        const response = await fetch("/api/save-document", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include", // NECESSARIO per inviare il cookie di sessione Flask
-          body: JSON.stringify({ nome: docName, contenuto: text })
+          credentials: "include",
+          body: JSON.stringify({ nome: docName, contenuto: text }),
         });
 
         const data = await response.json();
@@ -73,7 +76,7 @@ export const useEditorAI = ({ getEditorText, insertText }) => {
     }
 
 
-
+    // --- 3. OPERAZIONI AI ---
     setIsLoading(true);
     try {
       const text = getEditorText();
@@ -85,7 +88,7 @@ export const useEditorAI = ({ getEditorText, insertText }) => {
         try {
           await saveGenerazione(text, result, nomeDocumento);
         } catch (err) {
-          // il salvataggio su DB non blocca il flusso
+          // il salvataggio su DB non blocca il flusso UI
           console.error("Errore salvataggio generazione su DB:", err);
         }
       }

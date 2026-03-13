@@ -6,19 +6,17 @@ import styles from "./HistoryPage.module.css";
 /**
  * HistoryPage — vista a schermo intero per lo storico delle generazioni AI (/history)
  *
- * Segue lo stesso pattern di EditorPage:
- * - delega la logica all'hook useAiHistory
- * - assembla i componenti senza conoscere i dettagli
- *
- * @param {string|null} nomeDocumento - passato come prop da router state
+ * nomeDocumento viene letto dallo state del router tramite useLocation,
+ * passato da EditorSidebarButtons con navigate("/history", { state: { nomeDocumento } })
  */
+
 export const HistoryPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Recupera il nome documento dallo state del router se disponibile
-  // (EditorPage lo passerà tramite navigate("/history", { state: { nomeDocumento } }))
-  const nomeDocumento = window.history.state?.usr?.nomeDocumento ?? null;
-
+  // modo corretto per leggere lo state del router in React Router v6
+  const nomeDocumento = location.state?.nomeDocumento ?? null;
+ 
   const { history, handleDelete, isLoading } = useAiHistory(nomeDocumento);
 
   return (
