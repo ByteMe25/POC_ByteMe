@@ -3,11 +3,14 @@ import { router } from "./router";
 import ReactDOM from "react-dom/client";
 import { AuthProvider } from "../context/AuthContext";
 import { HistoryProvider } from "../context/HistoryContext";
+import { DocNameProvider } from "../context/openedDocContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <AuthProvider>
-    <HistoryProvider>
-      <RouterProvider router={router} />
-    </HistoryProvider>
+    <DocNameProvider>
+      <HistoryProvider>
+        <RouterProvider router={router} />
+      </HistoryProvider>
+    </DocNameProvider>
   </AuthProvider>
 );

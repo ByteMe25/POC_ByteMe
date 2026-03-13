@@ -1,3 +1,4 @@
+import { useDocName } from "./../../context/openedDocContext"
 import { Sidebar } from "@/components/Sidebar/Sidebar";
 import { EditorSidebarButtons } from "./components/EditorSidebarButtons";
 import TopBar from "@/components/Topbar/TopBar";
@@ -5,7 +6,10 @@ import { useEditor } from "./hooks/useEditor";
 import styles from "./EditorPage.module.css";
 
 export const EditorPage = () => {
-  const { editorRef, textareaRef, getEditorText, insertText } = useEditor();
+  
+  const {docName} = useDocName();
+  const { textareaRef, getEditorText, insertText } = useEditor(docName);
+
 
   return (
     <div className={styles.container}>

@@ -11,7 +11,6 @@ export const useLoadDocs = () => {
     try {
       const data = await loadDocsCall();
       setDocs(data);
-      console.log("Documenti caricati:", data);
     } catch (err) {
       console.log("caught error:", err.message);
       setError("registrazione fallita!!!!");

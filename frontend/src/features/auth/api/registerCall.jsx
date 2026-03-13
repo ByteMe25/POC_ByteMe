@@ -1,8 +1,7 @@
 const API_URL = "/api";
 
 export const registerCall = async (emailVal,passwordVal) => {
-    console.log("emailVal:", emailVal)
-    console.log("passwordVal:", passwordVal);
+
     try{
         const response = await fetch(`${API_URL}/registrazione`, {
         method: "POST",

@@ -1,5 +1,6 @@
 import { useEditorAI } from "../hooks/useEditorBtns";
 import SidebarButton from "@/components/Sidebar/SidebarButton";
+import { useNavigate } from "react-router-dom";
 
 const BUTTONS = [
   { id: "upload",    icon: "📤", tooltip: "Carica file dal PC", operation: "upload_local" },
@@ -12,7 +13,7 @@ const BUTTONS = [
 
 export const EditorSidebarButtons = ({ getEditorText, insertText }) => {
   const { handleAction, isLoading } = useEditorAI({ getEditorText, insertText });
-
+  const navigate = useNavigate();
   return (
     <>
       {BUTTONS.map((btn) => (
