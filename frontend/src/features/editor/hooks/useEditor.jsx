@@ -1,8 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 import { openDocumentCall } from "../api/openDocumentCall";
-import EasyMDE from "easymde";
-import "easymde/dist/easymde.min.css";
-
+import { easyMDEAdapter } from "../adapters/editor.adapter"
 
 export const useEditor = (docName) => {
   const editorRef = useRef(null);
@@ -11,18 +9,17 @@ export const useEditor = (docName) => {
   useEffect(() => {
     if (editorRef.current || !textareaRef.current) return;
     
-    editorRef.current = new EasyMDE({
+    editorRef.current = new easyMDEAdapter({
       element: textareaRef.current,
       sideBySideFullscreen: false,
       initialValue: "",
     });
 
-    editorRef.current.toggleSideBySide();
+    editorRef.current.enableSideBySide();
 
     return () => {
       if (editorRef.current) {
-        editorRef.current.toTextArea();
-        editorRef.current = null;
+        editorRef.current.destroy();
       }
     };
   }, []);
@@ -34,7 +31,7 @@ export const useEditor = (docName) => {
       try {
         const docInfo = await openDocumentCall(docName);
         if (docInfo?.document?.contenuto) {
-          editorRef.current.value(docInfo.document.contenuto);
+          editorRef.current.setContent(docInfo.document.contenuto);
         }
       } catch (error) {
         console.error("Failed to load document:", error);
@@ -45,15 +42,13 @@ export const useEditor = (docName) => {
   }, [docName]);
 
   const getEditorText = useCallback(
-    () => editorRef.current?.value() ?? "",
+    () => editorRef.current?.getEditorText() ?? "",
     []
   );
 
-  const insertText = useCallback((text) => {
-    const cm = editorRef.current?.codemirror;
-    if (!cm) return;
-    cm.replaceRange("\n" + text, cm.getCursor());
+  const insertTextAtCursor = useCallback((text) => {
+    editorRef.current.insertTextAtCursorPosition(text);
   }, []);
 
-  return { editorRef, textareaRef, getEditorText, insertText };
+  return { editorRef, textareaRef, getEditorText, insertTextAtCursor };
 };
