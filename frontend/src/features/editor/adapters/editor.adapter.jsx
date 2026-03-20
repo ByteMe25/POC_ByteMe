@@ -43,7 +43,7 @@ export class easyMDEAdapter{
         this.instance.toTextArea();
         this.instance.null;
     }
-     
+  
 };
 
 /*
@@ -51,7 +51,7 @@ in mancanza di interfacce, queata seguente classe può essere scritta come vogli
 se faccimao un typo con i nomi delle funzioni non c'è nessuno che ci aiuta.
 
 
-s
+
 export class otherMDEAdapter{
     //const { textareaRef, getEditorText, insertText } = useEditor(docName);
     constructor(){
@@ -68,9 +68,6 @@ export class otherMDEAdapter{
 
     destroy() {
         specificMDELogic()
-    }
-    
-    
-    
+    }   
 };
 */

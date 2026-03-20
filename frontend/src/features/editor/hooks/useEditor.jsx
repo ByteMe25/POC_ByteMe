@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 import { openDocumentCall } from "../api/openDocumentCall";
+import { EasyMDEAdapter } from "../adapters/editor.adapterTS"
 import { easyMDEAdapter } from "../adapters/editor.adapter"
 
 export const useEditor = (docName) => {
@@ -9,7 +10,7 @@ export const useEditor = (docName) => {
   useEffect(() => {
     if (editorRef.current || !textareaRef.current) return;
     
-    editorRef.current = new easyMDEAdapter({
+    editorRef.current = new EasyMDEAdapter({
       element: textareaRef.current,
       sideBySideFullscreen: false,
       initialValue: "",
