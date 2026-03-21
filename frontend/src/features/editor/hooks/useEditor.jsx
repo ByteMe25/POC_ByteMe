@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { openDocumentCall } from "../api/openDocumentCall";
 import EasyMDE from "easymde";
 import "easymde/dist/easymde.min.css";
-
+import { FormattingCommands } from "./FormattingCommands";
 
 export const useEditor = (docName) => {
   const editorRef = useRef(null);
@@ -14,7 +14,79 @@ export const useEditor = (docName) => {
     editorRef.current = new EasyMDE({
       element: textareaRef.current,
       sideBySideFullscreen: false,
-      initialValue: "",
+      toolbar: [
+    {
+      name: "bold",
+      action: FormattingCommands.bold, // Il comando concreto
+      className: "fa fa-bold",
+      title: "Grassetto",
+    },
+    {
+      name: "italic",
+      action: FormattingCommands.italic, // Il comando concreto
+      className: "fa fa-italic",
+      title: "Corsivo",
+    },
+    
+    {
+      name: "heading",
+      action: FormattingCommands.heading,
+      className: "fa fa-header",
+      title: "Intestazioni",
+    },
+    "|",
+    {
+      name: "quote",
+      action: FormattingCommands.quote,
+      className: "fa fa-quote-left",
+      title: "Citazione",
+    },
+    {
+      name: "unordered-list",
+      action: FormattingCommands.unorderedList,
+      className: "fa fa-list-ul",
+      title: "Lista Puntata",
+    },
+    {
+      name: "ordered-list",
+      action: FormattingCommands.orderedList,
+      className: "fa fa-list-ol",
+      title: "Lista Numerata",
+    },
+    "|",
+    {
+      name: "link",
+      action: FormattingCommands.link,
+      className: "fa fa-link",
+      title: "Inserisci Link",
+    },
+    {
+      name: "image",
+      action: FormattingCommands.image,
+      className: "fa fa-picture-o",
+      title: "Inserisci Immagine",
+    },
+    "|",
+    {
+      name: "preview",
+      action: FormattingCommands.togglePreview,
+      className: "fa fa-eye no-disable",
+      title: "Anteprima",
+    },
+    {
+      name: "side-by-side",
+      action: FormattingCommands.toggleSideBySide,
+      className: "fa fa-columns no-disable no-mobile",
+      title: "Vista Affiancata",
+    },
+    {
+      name: "fullscreen",
+      action: FormattingCommands.toggleFullScreen,
+      className: "fa fa-arrows-alt no-disable no-mobile",
+      title: "Schermo Intero",
+    },
+  
+    ],
     });
 
     editorRef.current.toggleSideBySide();

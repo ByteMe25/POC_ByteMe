@@ -5,43 +5,28 @@ from auth import registra_utente, login_utente
 from document import apri_documento, crea_storico, get_generazioni_per_storico, recupera_documenti_utente, salva_generazioneAI, salva_nuovo_documento, elimina_generazioneAI
 from db.db import execute_query, get_db_session
 from db.db import init_db
-
+from ai_strategies import STRATEGIES
+from model_strategies import ZucchettiLlamaStrategy,GeminiStrategy
 # Test GEMINI
-try:
-    # CONFIGURAZIONE OPENAI (LLM)
-    from openai import OpenAI
-    
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-    OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "")
-    ZUCCHETTI_MODEL = "llama3.2:3b"
-    
-    # Crea client OpenAI se le credenziali sono presenti
-    ai_client = OpenAI(
-        api_key=OPENAI_API_KEY,
-        base_url=OPENAI_BASE_URL
-    ) if OPENAI_API_KEY and OPENAI_BASE_URL else None
-    
-    print("=" * 60)
-    print("CONFIGURAZIONE ZUCCHETTI:")
-    print(f"🔑 API Key: {OPENAI_API_KEY[:10]}..." if OPENAI_API_KEY else "❌ API Key: Mancante")
-    print(f"🌐 Base URL: {OPENAI_BASE_URL}")
-    print(f"🤖 Modello: {ZUCCHETTI_MODEL}")
-    print(f"✅ Client: {'Attivo' if ai_client else '❌ Non configurato'}")
-    print("=" * 60)
-except ImportError:
-    ai_client = None
-    print("⚠️ Libreria 'openai' non installata. Endpoint AI non disponibile.")
-
-
 app = Flask(__name__)
 CORS(app, supports_credentials=True) # Permette al frontend di parlare con il backend
 
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey") # Sempre diversa
 
-# Crea le tabelle al primo avvio (utile in sviluppo; in prod usa Alembic)
+models = {
+    "zucchetti": ZucchettiLlamaStrategy(),
+    "gemini": GeminiStrategy()
+}
+
+# Scegli quale usare (magari leggendo da una variabile d'ambiente o fissa)
+current_model_name = os.getenv("DEFAULT_AI_MODEL", "zucchetti")
+ai_engine = models.get(current_model_name)
+
+if not ai_engine:
+    print("❌ ERRORE CRITICO: Nessun motore AI configurato correttamente!")
+
 with app.app_context():
     init_db()
-
 
 # ----------------------------------------------------------------
 # ENDPOINT SALVATAGGIO DOCUMENTI
@@ -213,60 +198,30 @@ def api_delete_ai_generation(id_generazione):
 # ENDPOINT AI
 @app.route('/api/ai/generate', methods=['POST'])
 def generate_ai_text():
-    """Genera contenuto AI basato su testo e operazione."""
+    """Genera contenuto AI basato su testo, operazione e modello scelto."""
     
-    print(f"📨 Richiesta AI ricevuta")
+    # 1. Recupero dati dalla richiesta frontend
+    data = request.json
+    text = data.get('text', '')
+    operation = data.get('operation', 'summary')
     
-    if not ai_client:
-        return jsonify({
-            "generated_text": "❌ Client Zucchetti non configurato. Controlla le variabili d'ambiente."
-        }), 500
-    
+    if not text:
+        return jsonify({"generated_text": "❌ Nessun testo fornito."}), 400
+
     try:
-        data = request.json
-        text = data.get('text', '')
-        operation = data.get('operation', 'summary')
-        
-        if not text:
-            return jsonify({
-                "generated_text": "❌ Nessun testo fornito."
-            }), 400
-        
-        print(f"🤖 Operazione: {operation}")
-        
-        # Costruisci il prompt in base all'operazione
+        # 2. PATTERN STRATEGY (CONTENUTO): Costruisci i prompt
         system_prompt, user_prompt = build_prompt(operation, text)
-
-        #Prompt per Zucchetti
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ]
-        
-        # Chiamata all'API Zucchetti
-        response = ai_client.chat.completions.create(
-            model=ZUCCHETTI_MODEL,
-            messages=messages,
-            #temperature=0.7,
-            #max_tokens=500
-        )
-
-        print(f"🤖 Invio a API Zucchetti...")
-
-        # Gestione risposta con api Zucchetti
-        result = response.choices[0].message.content
-        
-        #per rimuovere frasi introduttive che AI mette di default:
+        # 3. PATTERN STRATEGY (MODELLO): Esegui la chiamata
+        print(f"🤖 Uso il motore: {type(ai_engine).__name__} per operazione: {operation}")
+        result = ai_engine.generate(system_prompt, user_prompt)
+        # 4. Pulizia e invio
         result = clean_ai_response(result)
-
-        print(f"✅ Successo! Risposta: {len(result)} caratteri")
-        
         return jsonify({"generated_text": result}), 200
-        
+
     except Exception as e:
-        print(f"❌ Errore dettagliato: {e}")
+        print(f"❌ Errore durante la generazione: {e}")
         return jsonify({
-            "generated_text": f"❌ Errore API Zucchetti:\n\n{str(e)[:300]}\n\nConfigurazione:\n• {ZUCCHETTI_MODEL}\n• Endpoint: {OPENAI_BASE_URL}\n• Operazione: {operation}"
+            "generated_text": f"❌ Errore critico:\n{str(e)}"
         }), 500
 
 # funzione per rimuovere frasi introduttive AI
@@ -306,80 +261,12 @@ def clean_ai_response(text):
 
 
 def build_prompt(operation, text):
-    """Costruisce system e user prompt in base all'operazione."""
+    """Costruisce i prompt delegando alla strategia corretta."""
+    # Recupera la strategia, se non esiste usa 'summary' come default
+    strategy = STRATEGIES.get(operation, STRATEGIES['summary'])
     
-    prompts = {
-        'summary': (
-            "Sei un assistente che riassume testi in italiano in modo chiaro e conciso. NON usare frasi introduttive, rispondi SOLO con il riassunto.",
-            f"Fai un riassunto breve e chiaro in italiano di:\n\n{text}"
-        ),
-        'fix_grammar': (
-            "Sei un correttore di bozze che corregge errori grammaticali e ortografici in italiano. NON usare frasi introduttive. Rispondi SOLO con il testo corretto.",
-            f"Correggi eventuali errori grammaticali e ortografici nel seguente testo:\n\n{text}"
-        ),
-        'rewrite': (
-            "Sei un editor che riscrive testi migliorandone la chiarezza e lo stile, mantenendo il significato originale. NON usare frasi introduttive. Rispondi SOLO con il testo riscritto.",
-            f"Riscrivi il seguente testo migliorandone la chiarezza:\n\n{text}"
-        ),
-        'distant_writing': (
-            "Sei uno scrittore creativo che espande idee e concetti in testi più articolati. NON usare frasi introduttive. Rispondi SOLO con il testo creato.",
-            f"Espandi e sviluppa il seguente concetto in un testo più articolato:\n\n{text}"
-        ),
-        
-        # Cappelli di De Bono
-        'white_hat': (
-            "Sei un analista oggettivo. Usa il Cappello Bianco: concentrati solo su dati, fatti e informazioni verificabili.",
-            f"Analizza il seguente testo dal punto di vista dei dati e dei fatti:\n\n{text}"
-        ),
-        'red_hat': (
-            "Sei un analista emotivo. Usa il Cappello Rosso: concentrati sulle emozioni, intuizioni e sentimenti.",
-            f"Analizza il seguente testo dal punto di vista emotivo:\n\n{text}"
-        ),
-        'black_hat': (
-            "Sei un critico costruttivo. Usa il Cappello Nero: identifica rischi, problemi e criticità.",
-            f"Analizza il seguente testo identificando rischi e criticità:\n\n{text}"
-        ),
-        'yellow_hat': (
-            "Sei un ottimista strategico. Usa il Cappello Giallo: concentrati su benefici e opportunità.",
-            f"Analizza il seguente testo identificando benefici e opportunità:\n\n{text}"
-        ),
-        'green_hat': (
-            "Sei un pensatore creativo. Usa il Cappello Verde: genera idee nuove e soluzioni creative.",
-            f"Analizza il seguente testo con creatività, proponendo idee alternative:\n\n{text}"
-        ),
-        'blue_hat': (
-            "Sei un organizzatore strategico. Usa il Cappello Blu: struttura il processo e definisci i prossimi passi.",
-            f"Analizza il seguente testo organizzando il processo:\n\n{text}"
-        ),
-        
-        # Traduzioni
-        'translate_it': (
-            "Sei un traduttore professionista. Rispondi SOLO con il testo tradotto, senza frasi introduttive.",
-            f"Traduci in italiano:\n\n{text}"
-        ),
-        'translate_en': (
-            "Sei un traduttore professionista. Rispondi SOLO con il testo tradotto, senza frasi introduttive.",
-            f"Traduci in inglese:\n\n{text}"
-        ),
-        'translate_es': (
-            "Sei un traduttore professionista. Rispondi SOLO con il testo tradotto, senza frasi introduttive.",
-            f"Traduci in spagnolo:\n\n{text}"
-        ),
-        'translate_fr': (
-            "Sei un traduttore professionista. Rispondi SOLO con il testo tradotto, senza frasi introduttive.",
-            f"Traduci in francese:\n\n{text}"
-        ),
-        'translate_de': (
-            "Sei un traduttore professionista. Rispondi SOLO con il testo tradotto, senza frasi introduttive.",
-            f"Traduci in tedesco:\n\n{text}"
-        ),
-        'translate_zh': (
-            "Sei un traduttore professionista. Rispondi SOLO con il testo tradotto, senza frasi introduttive.",
-            f"Traduci in cinese mandarino:\n\n{text}"
-        )
-    }
-    
-    return prompts.get(operation, prompts['summary']) #fallback su summary se ci sono errori con altre operazioni
+    # Esegue la strategia
+    return strategy.build(text)
 
 
 # ENDPOINT TEST DB
