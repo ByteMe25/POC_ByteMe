@@ -42,6 +42,8 @@ export const FormattingCommands = {
 
   toggleFullScreen: (mde) => mde.toggleFullScreen(),
 
+  undo: (mde) => mde.undo(),
+  redo: (mde) => mde.redo(),
 
   
 };

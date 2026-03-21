@@ -85,6 +85,18 @@ export const useEditor = (docName) => {
       className: "fa fa-arrows-alt no-disable no-mobile",
       title: "Schermo Intero",
     },
+    {
+      name: "undo",
+      action: FormattingCommands.undo,
+      className: "fa fa-undo",
+      title: "undo",
+    },
+    {
+      name: "redo",
+      action: FormattingCommands.redo,
+      className: "fa fa-redo",
+      title: "redo",
+    },
   
     ],
     });
