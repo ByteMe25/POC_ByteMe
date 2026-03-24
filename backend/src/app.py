@@ -200,7 +200,7 @@ def api_delete_ai_generation(id_generazione):
 def generate_ai_text():
     """Genera contenuto AI basato su testo, operazione e modello scelto."""
     
-    # 1. Recupero dati dalla richiesta frontend
+    # 1. Recupero dati dalla richiesta frontend 
     data = request.json
     text = data.get('text', '')
     operation = data.get('operation', 'summary')
