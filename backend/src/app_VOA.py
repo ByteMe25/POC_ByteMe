@@ -213,10 +213,62 @@ def api_delete_ai_generation(id_generazione):
 # ENDPOINT AI
 @app.route('/api/ai/generate', methods=['POST'])
 def generate_ai_text():
-    import time
-    time.sleep(5)
-    return jsonify({"generated_text": "Questo è un risultato di test finto dall'AI."}), 200
+    """Genera contenuto AI basato su testo e operazione."""
+    
+    print(f"📨 Richiesta AI ricevuta")
+    
+    if not ai_client:
+        return jsonify({
+            "generated_text": "❌ Client Zucchetti non configurato. Controlla le variabili d'ambiente."
+        }), 500
+    
+    try:
+        data = request.json
+        text = data.get('text', '')
+        operation = data.get('operation', 'summary')
         
+        if not text:
+            return jsonify({
+                "generated_text": "❌ Nessun testo fornito."
+            }), 400
+        
+        print(f"🤖 Operazione: {operation}")
+        
+        # Costruisci il prompt in base all'operazione
+        system_prompt, user_prompt = build_prompt(operation, text)
+
+        #Prompt per Zucchetti
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ]
+        
+        # Chiamata all'API Zucchetti
+        response = ai_client.chat.completions.create(
+            model=ZUCCHETTI_MODEL,
+            messages=messages,
+            #temperature=0.7,
+            #max_tokens=500
+        )
+
+        print(f"🤖 Invio a API Zucchetti...")
+
+        # Gestione risposta con api Zucchetti
+        result = response.choices[0].message.content
+        
+        #per rimuovere frasi introduttive che AI mette di default:
+        result = clean_ai_response(result)
+
+        print(f"✅ Successo! Risposta: {len(result)} caratteri")
+        
+        return jsonify({"generated_text": result}), 200
+        
+    except Exception as e:
+        print(f"❌ Errore dettagliato: {e}")
+        return jsonify({
+            "generated_text": f"❌ Errore API Zucchetti:\n\n{str(e)[:300]}\n\nConfigurazione:\n• {ZUCCHETTI_MODEL}\n• Endpoint: {OPENAI_BASE_URL}\n• Operazione: {operation}"
+        }), 500
+
 # funzione per rimuovere frasi introduttive AI
 def clean_ai_response(text):
     """Rimuove frasi introduttive tipiche delle risposte AI."""

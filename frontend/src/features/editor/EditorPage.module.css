@@ -16,3 +16,9 @@
   flex: 1;
   display: flex;
 }
+
+/* test widget ai */
+
+.editor :global(.CodeMirror-sided) {
+  position: relative;
+}

@@ -6,29 +6,41 @@ import { AiWidget } from "./aiWidget/AiWidget";
 import TopBar from "@/components/Topbar/TopBar";
 import { useEditor } from "./hooks/useEditor";
 import styles from "./EditorPage.module.css";
-import { IdleState } from "./aiWidget/states/IdleState";
 
 export const EditorPage = () => {
   const { docName } = useDocName();
   const { textareaRef, getEditorText, insertTextAtCursor, insertWidget } = useEditor(docName);
   const removeWidgetRef = useRef(null);
-  const [widgetState, setWidgetState] = useState(new IdleState());
 
-  const handleAiStateChange = useCallback(({ widgetState }) => {
-    setWidgetState(widgetState);
+  const [aiWidget, setAiWidget] = useState({
+    widgetState: { status: "idle" },
+    confirmInsert: null,
+    reset: null,
+  });
+
+  const handleAiStateChange = useCallback((state) => {
+    setAiWidget(state);
   }, []);
 
   useEffect(() => {
-    if (widgetState.render() === null) {
+    const { widgetState, confirmInsert, reset } = aiWidget;
+
+    if (widgetState.status === "idle") {
+      // rimuove il widget dal DOM quando torna idle
       removeWidgetRef.current?.();
       removeWidgetRef.current = null;
       return;
     }
 
+    // monta o aggiorna il widget nel flusso del testo
     removeWidgetRef.current = insertWidget(
-      <AiWidget state={widgetState} />
+      <AiWidget
+        widgetState={widgetState}
+        onInsert={confirmInsert}
+        onClose={reset}
+      />
     );
-  }, [widgetState]);
+  }, [aiWidget]);
 
   return (
     <div className={styles.container}>
@@ -41,7 +53,8 @@ export const EditorPage = () => {
             onAiStateChange={handleAiStateChange}
           />
         </Sidebar>
-        <div className={styles.editor}>
+
+        <div className={styles.editor} style={{ position: "relative" }}>
           <textarea ref={textareaRef} />
         </div>
       </div>

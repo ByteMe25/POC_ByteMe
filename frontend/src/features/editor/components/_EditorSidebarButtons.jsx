@@ -3,7 +3,6 @@ import { useEditorAI } from "../hooks/useEditorBtns";
 import SidebarButton from "@/components/Sidebar/SidebarButton";
 import { useNavigate } from "react-router-dom";
 import { useDocName } from "@/context/openedDocContext";
-import { LoadingState } from "../aiWidget/states/LoadingState";
 
 const BUTTONS = [
   { id: "upload",    icon: "📤", tooltip: "Carica file dal PC", operation: "upload_local" },
@@ -15,7 +14,7 @@ const BUTTONS = [
 
 export const EditorSidebarButtons = ({ getEditorText, insertText, onAiStateChange }) => {
   const { docName } = useDocName();
-  const { handleAction, widgetState, isSaving } = useEditorAI({
+  const { handleAction, widgetState, confirmInsert, reset, isSaving } = useEditorAI({
     getEditorText,
     insertText,
     nomeDocumento: docName,
@@ -23,8 +22,8 @@ export const EditorSidebarButtons = ({ getEditorText, insertText, onAiStateChang
   const navigate = useNavigate();
 
   useEffect(() => {
-    onAiStateChange?.({ widgetState });
-  }, [widgetState]);
+    onAiStateChange?.({ widgetState, confirmInsert, reset });
+  }, [widgetState]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -33,7 +32,7 @@ export const EditorSidebarButtons = ({ getEditorText, insertText, onAiStateChang
           key={btn.id}
           icon={btn.icon}
           tooltip={btn.tooltip}
-          disabled={widgetState instanceof LoadingState || isSaving}
+          disabled={widgetState.status === "loading" || isSaving}
           onClick={() => handleAction(btn.operation)}
         />
       ))}

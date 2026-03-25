@@ -43,6 +43,12 @@ export class easyMDEAdapter{
         this.instance.toTextArea();
         this.instance.null;
     }
+
+    addLineWidget(domElement) {
+        const cm = this.instance.codemirror;
+        const cursor = cm.getCursor("to");
+        return cm.addLineWidget(cursor.line, domElement);
+    }
   
 };
 

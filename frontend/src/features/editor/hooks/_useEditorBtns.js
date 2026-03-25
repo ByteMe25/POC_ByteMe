@@ -3,24 +3,21 @@ import { callAI } from "../api/editorApiCall";
 import { useHistory } from "@/context/HistoryContext";
 import { useAuth } from "@/context/AuthContext";
 import { saveGenerazione } from "@/features/history/api/historyApiCall";
-import { IdleState } from "../aiWidget/states/IdleState";
-import { LoadingState } from "../aiWidget/states/LoadingState";
-import { DoneState } from "../aiWidget/states/DoneState";
+
+const IDLE    = { status: "idle" };
+const LOADING = { status: "loading" };
+const done    = (result) => ({ status: "done", result });
 
 export const useEditorAI = ({ getEditorText, insertText, nomeDocumento = null }) => {
-  const [widgetState, setWidgetState] = useState(new IdleState());
+  const [widgetState, setWidgetState] = useState(IDLE);
   const [isSaving, setIsSaving] = useState(false);
   const { addEntry } = useHistory();
   const { user } = useAuth();
 
   const transitions = {
-    start:   ()       => setWidgetState(new LoadingState()),
-    resolve: (result) => setWidgetState(new DoneState(
-      result,
-      () => { insertText(result); transitions.reset(); },
-      () => transitions.reset()
-    )),
-    reset:   ()       => setWidgetState(new IdleState()),
+    start:   ()       => setWidgetState(LOADING),
+    resolve: (result) => setWidgetState(done(result)),
+    reset:   ()       => setWidgetState(IDLE),
   };
 
   const handleAction = async (operation) => {
@@ -45,6 +42,7 @@ export const useEditorAI = ({ getEditorText, insertText, nomeDocumento = null })
         const text = getEditorText();
         const docName = prompt("Inserisci un titolo per il documento:");
         if (!docName || !text) return;
+
         const response = await fetch("/api/save-document", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -83,5 +81,10 @@ export const useEditorAI = ({ getEditorText, insertText, nomeDocumento = null })
     }
   };
 
-  return { handleAction, widgetState, isSaving };
+  const confirmInsert = () => {
+    if (widgetState.status === "done") insertText(widgetState.result);
+    transitions.reset();
+  };
+
+  return { handleAction, widgetState, confirmInsert, reset: transitions.reset, isSaving };
 };

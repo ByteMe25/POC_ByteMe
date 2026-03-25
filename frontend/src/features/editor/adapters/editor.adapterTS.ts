@@ -7,6 +7,7 @@ export interface GenericAdapter {
   insertTextAtCursorPosition(text: string): void;
   enableSideBySide(): void;
   destroy(): void;
+  addLineWidget(domElement: HTMLElement): any;
 }
 
 export class EasyMDEAdapter implements GenericAdapter {
@@ -31,6 +32,12 @@ export class EasyMDEAdapter implements GenericAdapter {
 
   enableSideBySide(): void {
     this.instance.toggleSideBySide();
+  }
+
+  addLineWidget(domElement: HTMLElement): any {
+    const cm = this.instance.codemirror;
+    const cursor = cm.getCursor("to");
+    return cm.addLineWidget(cursor.line, domElement);
   }
 
   destroy(): void {
