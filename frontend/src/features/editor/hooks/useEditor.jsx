@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { openDocumentCall } from "../api/openDocumentCall";
 import EasyMDE from "easymde";
 import "easymde/dist/easymde.min.css";
-import { FormattingCommands } from "./FormattingCommands";
+import { FormattingCommands } from "./FormattingCommandstype";
 
 export const useEditor = (docName) => {
   const editorRef = useRef(null);
