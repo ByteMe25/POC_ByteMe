@@ -1,7 +1,14 @@
 # ai_model_strategies.py
 import os
 from openai import OpenAI
-import google.generativeai as genai
+
+_model_instances: dict[str, AIModelStrategy] = {}
+
+def get_model(model_class: Type[AIModelStrategy]) -> AIModelStrategy:
+    key = model_class.__name__
+    if key not in _model_instances:
+        _model_instances[key] = model_class()
+    return _model_instances[key]
 
 class AIModelStrategy:
     """Interfaccia comune per tutti i modelli AI"""
@@ -29,7 +36,7 @@ class ZucchettiLlamaStrategy(AIModelStrategy):
 
 class GeminiStrategy(AIModelStrategy):
     """Strategia per Google Gemini"""
-    def __init__(self):
+    """def __init__(self):
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
         self.model = genai.GenerativeModel('gemini-pro')
 
@@ -38,4 +45,4 @@ class GeminiStrategy(AIModelStrategy):
         # Uniamo i prompt o usiamo la configurazione specifica del modello
         full_prompt = f"{system_prompt}\n\nRichiesta utente: {user_prompt}"
         response = self.model.generate_content(full_prompt)
-        return response.text
+        return response.text"""
